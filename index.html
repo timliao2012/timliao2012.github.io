@@ -231,7 +231,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2023-06-26 22:57:51 / 修改时间：23:08:17" itemprop="dateCreated datePublished" datetime="2023-06-26T22:57:51+08:00">2023-06-26</time>
+      <time title="创建时间：2023-06-26 22:57:51 / 修改时间：23:25:10" itemprop="dateCreated datePublished" datetime="2023-06-26T22:57:51+08:00">2023-06-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -253,15 +253,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>配置两个github账号，使用时互不干扰</p>
-<h1 id="生成两个ssh-key">生成两个SSH key</h1>
-<p>生成两个key的具体命令： <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519 -C <span class="string">&quot;one@gmail.com&quot;</span></span><br><span class="line">ssh-keygen -t ed25519 -C <span class="string">&quot;two@gmail.com&quot;</span></span><br></pre></td></tr></table></figure>
-注意在输入文件名时将两个文件进行区分</p>
-<h1 id="创建config文件并配置">创建config文件并配置</h1>
-<p>继续在 ​​<code>.ssh</code>​​ 目录下创建 <code>config</code> 文件，在
-<code>config</code> 文件中添加以下内容：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># one(one@gmail.com)</span></span><br><span class="line">Host one.github.com</span><br><span class="line">HostName github.com</span><br><span class="line">PreferredAuthentications publickey</span><br><span class="line">IdentityFile ~/.ssh/id_rsa_one</span><br><span class="line">User one</span><br><span class="line">    </span><br><span class="line"><span class="comment"># two(two@gmail.com)</span></span><br><span class="line">Host two.github.com</span><br><span class="line">HostName github.com</span><br><span class="line">PreferredAuthentications publickey</span><br><span class="line">IdentityFile ~/.ssh/id_rsa_two</span><br><span class="line">User two</span><br></pre></td></tr></table></figure>
-
+          <p>配置两个github账号，使用时互不干扰！</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/06/26/%E5%90%8C%E6%97%B6%E9%85%8D%E7%BD%AE%E4%B8%A4%E4%B8%AAgithub%E8%B4%A6%E6%88%B7/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
