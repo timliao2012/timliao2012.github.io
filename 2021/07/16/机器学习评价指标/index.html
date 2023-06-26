@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="本文将详细介绍机器学习分类任务的常用评价指标：准确率（Accuracy）、精确率（Precision）、召回率（Recall）、P-R曲线（Precision-Recall Curve）、F1 Score、混淆矩阵（Confuse Matrix）、ROC、AUC。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习评价指标">
+<meta property="og:url" content="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="本文将详细介绍机器学习分类任务的常用评价指标：准确率（Accuracy）、精确率（Precision）、召回率（Recall）、P-R曲线（Precision-Recall Curve）、F1 Score、混淆矩阵（Confuse Matrix）、ROC、AUC。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/roc.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/roc_gate.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/roc_tell.gif">
+<meta property="article:published_time" content="2021-07-16T09:24:56.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.365Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="评价指标">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/roc.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/","path":"2021/07/16/机器学习评价指标/","title":"机器学习评价指标"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>机器学习评价指标 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B7%B7%E6%B7%86%E7%9F%A9%E9%98%B5"><span class="nav-text">混淆矩阵</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E7%A1%AE%E7%8E%87accuracy"><span class="nav-text">准确率（Accuracy）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B2%BE%E7%A1%AE%E7%8E%87precision"><span class="nav-text">精确率（Precision）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%AC%E5%9B%9E%E7%8E%87recall"><span class="nav-text">召回率（Recall）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#f1-score"><span class="nav-text">F1-Score</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rocauc%E6%9B%B2%E7%BA%BF"><span class="nav-text">ROC&#x2F;AUC曲线</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%81%B5%E6%95%8F%E5%BA%A6%E7%89%B9%E5%BC%82%E5%BA%A6%E7%9C%9F%E9%98%B3%E7%8E%87%E5%81%87%E9%98%B3%E7%8E%87"><span class="nav-text">灵敏度、特异度、真阳率、假阳率</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#roc%E6%9B%B2%E7%BA%BF"><span class="nav-text">ROC曲线</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%88%E5%80%BC%E9%97%AE%E9%A2%98"><span class="nav-text">阈值问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E6%A8%A1%E5%9E%8B%E6%80%A7%E8%83%BD"><span class="nav-text">判断模型性能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#auc%E6%9B%B2%E7%BA%BF"><span class="nav-text">AUC曲线</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/07/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机器学习评价指标
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-16 17:24:56" itemprop="dateCreated datePublished" datetime="2021-07-16T17:24:56+08:00">2021-07-16</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ml/" itemprop="url" rel="index"><span itemprop="name">ml</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文将详细介绍机器学习分类任务的常用评价指标：准确率（Accuracy）、精确率（Precision）、召回率（Recall）、P-R曲线（Precision-Recall
+Curve）、F1 Score、混淆矩阵（Confuse Matrix）、ROC、AUC。</p>
+<span id="more"></span>
+<h1 id="混淆矩阵">混淆矩阵</h1>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 43%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>预测结果</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>真实类别</strong></td>
+<td>正例</td>
+<td>负例</td>
+</tr>
+<tr class="even">
+<td>正例</td>
+<td>真阳性（True Positive） TP</td>
+<td>假阴性（Ffalse Negative）FN</td>
+</tr>
+<tr class="odd">
+<td>负例</td>
+<td>假阳性（False Positive） FP</td>
+<td>真阴性（True Negative）TN</td>
+</tr>
+</tbody>
+</table>
+<h1 id="准确率accuracy">准确率（Accuracy）</h1>
+<p>准确率是分类问题中最为原始的评价指标，准确率的定义是<strong>预测正确的结果占总样本的百分比</strong>，其公式如下：
+<span class="math display">\[
+Accuracy = \frac{TP+TN}{TP+TN+FP+FN}
+\]</span></p>
+<h1 id="精确率precision">精确率（Precision）</h1>
+<p><strong>精准率</strong>（Precision）又叫<strong>查准率</strong>，它是<strong>针对预测结果</strong>而言的，它的含义是<strong>在所有被预测为正的样本中实际为正的样本的概率</strong>：
+<span class="math display">\[
+Precision = \frac{TP}{TP+FP}
+\]</span></p>
+<h1 id="召回率recall">召回率（Recall）</h1>
+<p><strong>召回率</strong>（Recall）又叫<strong>查全率</strong>，它是<strong>针对原样本</strong>而言的，它的含义是<strong>在实际为正的样本中被预测为正样本的概率</strong>：
+<span class="math display">\[
+Recall = \frac{TP}{TP+FN}
+\]</span></p>
+<h1 id="f1-score">F1-Score</h1>
+<p>在不同的应用场景下，我们的关注点不同，例如，在预测股票的时候，我们更关心精准率，即我们预测升的那些股票里，真的升了有多少，因为那些我们预测升的股票都是我们投钱的。而在预测病患的场景下，我们更关注召回率，即真的患病的那些人里我们预测错了情况应该越少越好。</p>
+<p>精确率和召回率是一对此消彼长的度量。例如在推荐系统中，我们想让推送的内容尽可能用户全都感兴趣，那只能推送我们把握高的内容，这样就漏掉了一些用户感兴趣的内容，召回率就低了；如果想让用户感兴趣的内容都被推送，那只有将所有内容都推送上，宁可错杀一千，不可放过一个，这样准确率就很低了。</p>
+<p>在实际工程中，我们往往需要结合两个指标的结果，去寻找一个平衡点，使综合性能最大化。</p>
+<p>在一些场景下要兼顾精准率和召回率，最常见的方法就是F-Measure，又称F-Score。F-Measure是P和R的<strong>加权调和平均</strong>，即：
+<span class="math display">\[
+\frac{1}{F_{\beta}}=\frac{1}{1+\beta^{2}}
+\cdot\left(\frac{1}{P}+\frac{\beta^{2}}{R}\right)
+\]</span></p>
+<p><span class="math display">\[
+F_{\beta}=\frac{\left(1+\beta^{2}\right) \times P \times
+R}{\left(\beta^{2} \times P\right)+R}
+\]</span></p>
+<p>特别地，当β=1时，也就是常见的F1-Score，是P和R的调和平均，当F1较高时，模型的性能越好。
+<span class="math display">\[
+F1=\frac{2 \times P \times R}{P+R} = \frac{2 \times TP}{样例总数+TP-TN}
+\]</span></p>
+<h1 id="rocauc曲线">ROC/AUC曲线</h1>
+<h2 id="灵敏度特异度真阳率假阳率">灵敏度、特异度、真阳率、假阳率</h2>
+<p><span class="math display">\[
+Sensitivity = \frac{TP}{TP+FN}
+\]</span></p>
+<p><span class="math display">\[
+Specificity=\frac{TN}{FP+TN}
+\]</span></p>
+<ul>
+<li>其实我们可以发现灵敏度和召回率是一模一样的，只是名字换了而已。</li>
+<li>由于我们比较关心正样本，所以需要查看有多少负样本被错误地预测为正样本，所以使用（1-
+特异度），而不是特异度。</li>
+</ul>
+<p><span class="math display">\[
+真阳率（TPR）=Sensitivity = \frac{TP}{TP+FN}
+\]</span></p>
+<p><span class="math display">\[
+假阳率(FPR) = 1 - Specificity = \frac{FP}{FP+TN}
+\]</span></p>
+<p><strong>TPR 和 FPR 分别是基于实际表现 1 和 0
+出发的，也就是说它们分别在实际的正样本和负样本中来观察相关概率问题。</strong></p>
+<p>正因为如此，所以无论样本是否平衡，都不会被影响。还是拿之前的例子，总样本中，90%
+是正样本，10% 是负样本。我们知道用准确率是有水分的，但是用 TPR 和 FPR
+不一样。这里，TPR 只关注 90% 正样本中有多少是被真正覆盖的，而与那 10%
+毫无关系，同理，FPR 只关注 10% 负样本中有多少是被错误覆盖的，也与那 90%
+毫无关系，所以可以看出：<strong>如果我们从实际表现的各个结果角度出发，就可以避免样本不平衡的问题了，这也是为什么选用
+TPR 和 FPR 作为 ROC/AUC 的指标的原因。</strong></p>
+<h2 id="roc曲线">ROC曲线</h2>
+<p><strong>ROC（Receiver Operating
+Characteristic）曲线</strong>，又称接受者操作特征曲线。ROC曲线中的主要两个指标就是<strong>真正率TPR</strong>和<strong>假正率FPR</strong>，上面已经解释了这么选择的好处所在。其中横坐标为假正率（FPR），纵坐标为真正率（TPR），下面就是一个标准的ROC曲线图。</p>
+<figure>
+<img src="roc.png" alt="ROC" />
+<figcaption aria-hidden="true">ROC</figcaption>
+</figure>
+<h3 id="阈值问题">阈值问题</h3>
+<p>ROC曲线是通过<strong>遍历所有阈值</strong>来绘制整条曲线的。如果我们不断的遍历所有阈值，预测的正样本和负样本是在不断变化的，相应的在ROC曲线图中也会沿着曲线滑动。</p>
+<figure>
+<img src="roc_gate.gif" alt="roc gate" />
+<figcaption aria-hidden="true">roc gate</figcaption>
+</figure>
+<p>我们看到改变阈值只是不断地改变预测的正负样本数，即TPR和FPR，但是曲线本身并没有改变。这是有道理的，阈值并不会改变模型的性能。</p>
+<h3 id="判断模型性能">判断模型性能</h3>
+<p>那么如何判断一个模型的ROC曲线是好的呢？这个还是要回归到我们的目的：FPR表示模型对于负样本误判的程度，而TPR表示模型对正样本召回的程度。我们所希望的当然是：负样本误判的越少越好，正样本召回的越多越好。所以总结一下就是<strong>TPR越高，同时FPR越低（即ROC曲线越陡），那么模型的性能就越好。</strong>参考如下动态图进行理解。</p>
+<figure>
+<img src="roc_tell.gif" alt="roc tell" />
+<figcaption aria-hidden="true">roc tell</figcaption>
+</figure>
+<p>即：<strong>进行模型的性能比较时，与PR曲线类似，若一个模型A的ROC曲线被另一个模型B的ROC曲线完全包住，则称B的性能优于A。若A和B的曲线发生了交叉，则谁的曲线下的面积大，谁的性能更优。</strong></p>
+<h2 id="auc曲线">AUC曲线</h2>
+<p>AUC(Area Under Curve)又称为曲线下面积，是处于ROC
+Curve下方的那部分面积的大小。上文中我们已经提到，对于ROC曲线下方面积越大表明模型性能越好，于是AUC就是由此产生的评价指标。通常，AUC的值介于0.5到1.0之间，较大的AUC代表了较好的Performance。如果模型是完美的，那么它的AUC
+=
+1，证明所有正例排在了负例的前面，如果模型是个简单的二类随机猜测模型，那么它的AUC
+=
+0.5，如果一个模型好于另一个，则它的曲线下方面积相对较大，对应的AUC值也会较大。</p>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<p>1.<a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/guoyaohua/p/classification-metrics.html">【机器学习】一文读懂分类算法常用评价指标</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87/" rel="tag"># 评价指标</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/08/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89/" rel="prev" title="卷积神经网络（CNN）">
+                  <i class="fa fa-chevron-left"></i> 卷积神经网络（CNN）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/19/%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C/" rel="next" title="数据倾斜">
+                  数据倾斜 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

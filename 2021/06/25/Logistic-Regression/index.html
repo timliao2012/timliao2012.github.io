@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="本文主要参考Andrew Ng老师的Machine Learning公开课，并用《机器学习实战》中的源码实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Logistic Regression">
+<meta property="og:url" content="https://timliao2012.github.io/2021/06/25/Logistic-Regression/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="本文主要参考Andrew Ng老师的Machine Learning公开课，并用《机器学习实战》中的源码实现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/2021/06/25/Logistic-Regression/lr-distribution.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/06/25/Logistic-Regression/lr-classify-data.png">
+<meta property="article:published_time" content="2021-06-25T14:20:56.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.322Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/2021/06/25/Logistic-Regression/lr-distribution.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/06/25/Logistic-Regression/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/06/25/Logistic-Regression/","path":"2021/06/25/Logistic-Regression/","title":"Logistic Regression"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Logistic Regression | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#logistic-regression%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-text">Logistic Regression基本原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#logistic%E5%88%86%E5%B8%83"><span class="nav-text">Logistic分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E9%A1%B9logistic-regression%E6%A8%A1%E5%9E%8B"><span class="nav-text">二项Logistic Regression模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text">优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95"><span class="nav-text">梯度下降法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95"><span class="nav-text">随机梯度下降法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E8%BF%87%E7%A8%8B%E5%90%91%E9%87%8F%E5%8C%96"><span class="nav-text">梯度下降过程向量化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E5%8C%96"><span class="nav-text">正则化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%AE%9E%E6%88%98%E4%BB%A3%E7%A0%81"><span class="nav-text">《机器学习实战》代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/06/25/Logistic-Regression/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Logistic Regression
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-06-25 22:20:56" itemprop="dateCreated datePublished" datetime="2021-06-25T22:20:56+08:00">2021-06-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ml/" itemprop="url" rel="index"><span itemprop="name">ml</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文主要参考Andrew Ng老师的Machine
+Learning公开课，并用《机器学习实战》中的源码实现。</p>
+<span id="more"></span>
+<h1 id="logistic-regression基本原理">Logistic Regression基本原理</h1>
+<h2 id="logistic分布">Logistic分布</h2>
+<p>Logistic Distribution的密度函数和概率分布函数如下：</p>
+<p><span class="math display">\[\begin{equation}
+f(x)=F&#39;(x) = \frac{e^{-(x-\mu)/\gamma}} { \gamma
+(1+e^{-(x-\mu)/\gamma})^2 }
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+F(x) = P(X \leqslant x) = \frac{1}{1+e^{-(x-\mu)/\gamma}}
+\end{equation}\]</span></p>
+<p>上式中$ <span class="math inline">\(是位置参数，\)</span> &gt; 0
+$是形状参数。</p>
+<p>下图是不同参数对logistic分布的影响，从图中可以看到可以看到 $ $
+影响的是中心对称点的位置，$ <span
+class="math inline">\(越小中心点附近增长的速度越快。而常常在深度学习中用到的非线性变换\)</span>
+sigmoid <span class="math inline">\(函数是逻辑斯蒂分布的\)</span> ,
+$的特殊形式。</p>
+<p><img title="不同参数对logistic分布的影响（图片来源维基百科）" src="lr-distribution.png" style="display:block;margin:auto" /></p>
+<h2 id="二项logistic-regression模型">二项Logistic Regression模型</h2>
+<p><img title="分类数据示例" src="lr-classify-data.png"  style="display:block;margin:auto" /></p>
+<p>逻辑回归是为了解决分类问题，根据一些已知的训练集训练好模型，再对新的数据进行预测属于哪个类。对于上图中的数据，逻辑回归的目标是找到一个有足够好区分度的决策边界，从而能够将两类很好的分开。
+&gt;分离边界的维数与空间的维数相关。如果是二维平面，分离边界就是一条线（一维）。如果是三维空间，分离边界就是一个空间中的面（二维）。如果是一维直线，分离边界就是直线上的某一点。</p>
+<p>假设输入的特征向量为$ x R^n <span class="math inline">\(，\)</span> Y
+<span class="math inline">\(取值为\)</span> 0，1 <span
+class="math inline">\(。对于二维的空间，决策边界可以表示为\)</span>
+w_1x_1+w_2x_2+b=0 <span
+class="math inline">\(，假如存在一个例子使得\)</span>
+h_w(x)=w_1x_1+w_2x_2+b&gt;0 <span
+class="math inline">\(，那么可以判断它类别为\)</span> 1
+$，这个过程实际上是<strong>感知机</strong>，即只通过决策函数的符号来判断属于哪一类。</p>
+<p>而逻辑回归需要再进一步，它要找到分类概率$ P(Y=1)<span
+class="math inline">\(与输入向量\)</span> x <span
+class="math inline">\(的直接关系，然后通过比较概率值来判断类别，而刚好上文中的`logistic
+function`能满足这样的要求，它令决策函数的输出值\)</span> w^Tx+b = log
+<span class="math inline">\(，求解这个式子得到了输入向量\)</span> x
+$下导致产生两类的概率为：</p>
+<p><span class="math display">\[\begin{equation}
+P(Y=1|x)=\frac{e^{w\cdot x+b}}{1+e^{w\cdot x+b}}
+\label{eq:logistic1}
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+P(Y=0|x)=\frac{1}{1+e^{w\cdot x+b}}
+\end{equation}\]</span></p>
+<p>其中$ w <span class="math inline">\(称为权重，\)</span> b <span
+class="math inline">\(称为偏置，其中的\)</span> w⋅x+b <span
+class="math inline">\(看成对\)</span> x <span
+class="math inline">\(的线性函数，有时候为了书写方便，会将\)</span> b
+<span class="math inline">\(写入\)</span> w $，即 $ w=(b,w_1,…,w_n) $
+，并取$ x=(1,x_1,…,x_n) <span
+class="math inline">\(。然后对比上面两个概率值，概率值大的就是\)</span>
+x $对应的类。</p>
+<p>又已知一个事件发生的几率<code>odds</code>是指该事件发生与不发生的概率比值，二分类情况下即$
+= <span class="math inline">\(。取`odds`的对数就是上面提到的`logistic
+function`，\)</span> logistic(P(Y=1|x))=log=w⋅x
+$。从而可以得到一种对逻辑回归的定义，</p>
+<p><strong>输出$ Y=1 <span
+class="math inline">\(的对数几率是由输入\)</span> x <span
+class="math inline">\(的线性函数表示的模型，即逻辑斯蒂回归模型(李航.《统计机器学习》)。**而直接考察公式\)</span><span
+class="math inline">\(\eqref{eq:logistic1}\)</span>$可以得到另一种对逻辑回归的定义，</strong>线性函数的值越接近正无穷，概率值就越接近1；线性值越接近负无穷，概率值越接近0，这样的模型是逻辑斯蒂回归模型(李航.《统计机器学习》)。**因此逻辑回归的思路是，先拟合决策边界(这里的决策边界不局限于线性，还可以是多项式)，再建立这个边界与分类的概率联系，从而得到了二分类情况下的概率。</p>
+<p>有了上面的分类概率，就可以建立似然函数，通过极大似然估计法来确定模型的参数。设$
+P(Y=1|x)=h_w(x) <span class="math inline">\(，似然函数为\)</span>
+<sup>{y</sup>{(i)}}[1-h_w(x^{(i)})]<sup>{(1-y</sup>{(i)})}
+$，对数似然函数为</p>
+<p><span class="math display">\[\begin{eqnarray}
+L(w) &amp; = &amp; \sum\_{i=1}^{N}\log P(y^{(i)}|x^{(i)};w) \\\\
+&amp; = &amp; \sum\_{i=1}^{N}[y^{(i)}\log
+h\_w(x^{(i)})+(1-y^{(i)})\log(1-h\_w(x^{(i)}))]
+\end{eqnarray}\]</span></p>
+<h1 id="优化方法">优化方法</h1>
+<p>优化的主要目标是找到一个方向，参数朝这个方向移动之后使得似然函数的值能够减小，这个方向往往由一阶偏导或者二阶偏导各种组合求得。逻辑回归的损失函数是</p>
+<p><span class="math display">\[\begin{eqnarray}
+min J(w) &amp;=&amp; \min \frac{1}{m}
+\sum_{j=1}^{m}Cost(h\_w(x^{(i)}),y^{(i)}) \\\\
+&amp;=&amp; \min {-\frac{1}{m}[\sum_{i=1}^{m}y^{(i)}\log
+h\_w(x^{(i)})+(1-y^{(i)})\log(1-h\_w(x^{(i)}))]}
+\end{eqnarray}\]</span></p>
+<h2 id="梯度下降法">梯度下降法</h2>
+<blockquote>
+<p>最大似然估计就是要求得使$ J(θ) <span
+class="math inline">\(取最大值时的\)</span> θ <span
+class="math inline">\(，但因此处的\)</span>
+Cost(h_w(x<sup>{(i)}),y</sup>{(i)}) <span
+class="math inline">\(添加了一个负号，所以必须用梯度下降法求解最佳参数。但若此处的\)</span>
+Cost(h_w(x<sup>{(i)}),y</sup>{(i)})
+$没有添加负号，则需要用梯度上升法求解最佳参数。</p>
+</blockquote>
+<p>先把$ J(w) <span class="math inline">\(对\)</span> w_j <span
+class="math inline">\(的一阶偏导求出来，且用\)</span> g <span
+class="math inline">\(表示。\)</span> g $是梯度向量。</p>
+<p><span class="math display">\[\begin{eqnarray}
+g_j &amp;=&amp; \frac{\partial J(w)}{\partial w\_j}\\\\
+&amp;=&amp; -\frac{1}{m}\sum_{i=1}^{m}(\frac{y^{(i)}}{h_w(x^{(i)})}
+h_w(x^{(i)}) (1-h\_w(x^{(i)}))(-x_{j}^{(i)}) + (1-y^{(i)})\frac
+{1}{1-h_w(x^{(i)})}h_w(x^{(i)})(1-h_w(x^{(i)}))x\_j^{(i)}) \\\\
+&amp;=&amp;
+-\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}-h\_w(x^{(i)}))x\_{j}^{(i)})
+\end{eqnarray}\]</span></p>
+<p>梯度下降是通过$ J(w) <span class="math inline">\(对\)</span> w
+$的一阶导数来找下降方向（负梯度），并且以迭代的方式来更新参数，更新方式为</p>
+<p><span class="math display">\[\begin{eqnarray}
+w^{k+1}_j &amp;=&amp; w^k_j+α(-g_j)\\\\
+&amp;=&amp;w^k\_j+α
+\frac{1}{m}\sum\_{i=1}^{m}(y^{(i)}-h\_w(x^{(i)}))x\_{j}^{(i)}
+\label{eq:lr-gd}
+\end{eqnarray}\]</span></p>
+<p>$ k <span
+class="math inline">\(为迭代次数。每次更新参数后，可以通过比较\)</span>||J(w<sup>{k+1})−J(w</sup>k)||<span
+class="math inline">\(或者\)</span> ||w<sup>{k+1}−w</sup>k ||<span
+class="math inline">\(与某个阈值\)</span>
+$大小的方式来停止迭代，即比阈值小就停止。</p>
+<blockquote>
+<p>如果采用梯度上升法来推到参数的更新方式，会发现式子与公式<span
+class="math inline">\(\eqref{eq:lr-gd}\)</span>完全一样，所以采用梯度上升发和梯度下降法是一样的。</p>
+</blockquote>
+<h2 id="随机梯度下降法">随机梯度下降法</h2>
+<p>从上面梯度下降法中的公式<span
+class="math inline">\(\eqref{eq:lr-gd}\)</span>中可以看到，每次更新回归系数时都需要遍历整个数据集，如果有数十亿样本和成千上万个特征，则梯度下降法的计算复杂度就太高了。随机梯度下降法一次仅用一个样本点来更新回归系数：</p>
+<p><span class="math display">\[\begin{equation}
+w^{k+1}_j = w^k\_j+α (y^{(i)}-h\_w(x^{(i)}))x\_{j}^{(i)}
+\end{equation}\]</span></p>
+<h2 id="梯度下降过程向量化">梯度下降过程向量化</h2>
+<p>约定训练数据的矩阵形式如下，$ x
+$的每一行为一条训练样本，而每一列为不同的特称取值：</p>
+<p><span class="math display">\[\begin{equation}
+x=
+\left[
+\begin{matrix}
+x^{(1)}\\\\
+x^{(2)}\\\\
+\ldots\\\\
+x^{(m)}
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+x_0^{(1)} &amp; x_1^{(1)} &amp; \ldots &amp; x_n^{(1)}\\\\
+x_0^{(2)} &amp; x_1^{(2)} &amp; \ldots &amp; x_n^{(2)}\\\\
+\ldots &amp; \ldots &amp; \ldots &amp; \ldots \\\\
+x_0^{(m)} &amp; x_1^{(m)} &amp; \ldots &amp; x_n^{(m)}
+\end{matrix}
+\right]
+,
+y=
+\left[
+\begin{matrix}
+y^{(1)}\\\\
+y^{(2)}\\\\
+\ldots\\\\
+y^{(m)}
+\end{matrix}
+\right]
+\end{equation}\]</span></p>
+<p>约定待求的参数θ的矩阵形式为：</p>
+<p><span class="math display">\[\begin{equation}
+\theta =
+\left[
+\begin{matrix}
+\theta_1\\\\
+\theta_2\\\\
+\ldots\\\\
+\theta_n
+\end{matrix}
+\right]
+\end{equation}\]</span></p>
+<p>先求$ x <span class="math inline">\(并记为\)</span> A $：</p>
+<p><span class="math display">\[\begin{equation}
+A=x \cdot \theta
+=
+\left[
+\begin{matrix}
+x_0^{(1)} &amp; x_1^{(1)} &amp; \ldots &amp; x_n^{(1)}\\\\
+x_0^{(2)} &amp; x_1^{(2)} &amp; \ldots &amp; x_n^{(2)}\\\\
+\ldots &amp; \ldots &amp; \ldots &amp; \ldots \\\\
+x_0^{(m)} &amp; x_1^{(m)} &amp; \ldots &amp; x_n^{(m)}
+\end{matrix}
+\right]
+\cdot
+\left[
+\begin{matrix}
+\theta_0\\\\
+\theta_1\\\\
+\ldots\\\\
+\theta_n
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+\theta_0x_0^{(1)} + \theta_1x_1^{(1)} + \ldots + \theta_nx_n^{(1)}\\\\
+\theta_0x_0^{(2)} + \theta_1x_1^{(2)} + \ldots + \theta_nx_n^{(2)}\\\\
+\ldots \\\\
+\theta_0x_0^{(m)} + \theta_1x_1^{(m)} + \ldots + \theta_nx_n^{(m)}
+\end{matrix}
+\right]
+\end{equation}\]</span></p>
+<p>求$ h_(x)-y <span class="math inline">\(并记为\)</span> E $：</p>
+<p><span class="math display">\[\begin{equation}
+E=h_\theta(x)-y=
+\left[
+\begin{matrix}
+g(A^{(1)})-y^{(1)}\\\\
+g(A^{(2)})-y^{(2)}\\\\
+\ldots \\\\
+g(A^{(m)})-y^{(m)}
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+e^{(1)}\\\\
+e^{(2)}\\\\
+\ldots\\\\
+e^{(m)}
+\end{matrix}
+\right]
+=g(A)-y
+\end{equation}\]</span></p>
+<p>由上式可知$ h_(x)-y <span class="math inline">\(可以由\)</span>
+g(A)-y $一次计算求得。</p>
+<p>再来看一下公式<span
+class="math inline">\(\eqref{eq:lr-gd}\)</span>的<span
+class="math inline">\(\theta\)</span>更新过程：</p>
+<p><span class="math display">\[\begin{eqnarray}
+\theta_j &amp;=&amp; \theta\_j + \alpha
+\sum\_{i=1}^{m}(-e^{(i)})x\_j^{(i)}\\\\
+&amp;=&amp;
+\theta\_j-\alpha\cdot(x\_j^{(1)},x\_j^{(2)},\ldots,x\_j^{(m)})\cdot E
+\end{eqnarray}\]</span></p>
+<p>综合上面的式子有：</p>
+<p><span class="math display">\[\begin{equation}
+\theta = \theta - \alpha\cdot\frac{1}{m}\cdot
+x^T\cdot(g(x\cdot\theta)-y)
+\end{equation}\]</span></p>
+<h1 id="正则化">正则化</h1>
+<p>由于模型的参数个数一般是由人为指定和调节的，所以正则化常常是用来限制模型参数值不要过大，也被称为惩罚项。一般是在目标函数(经验风险)中加上一个正则化项$
+(w) $即</p>
+<p><span class="math display">\[\begin{equation}
+J(w) = -\frac{1}{m}[\sum_{i=1}^{m}y_ilog h_w (x_i) +
+(1-y_i)log(1-h_w(x_i))] + \lambda \Phi(w)
+\label{eq:reg}
+\end{equation}\]</span></p>
+<p>而这个正则化项一般会采用L1范数或者L2范数。其形式分别为$ (w)=||x||_1
+<span class="math inline">\(和\)</span> (w)=||x||_2 $。</p>
+<p>首先针对L1范数$ (w)=|x| <span
+class="math inline">\(，当采用梯度下降方式来优化目标函数时，对目标函数进行求导，正则化项导致的梯度变化当\)</span>
+w_j &gt; 0 <span class="math inline">\(是取1，当\)</span> w_j &lt; 0
+$时取-1.</p>
+<p>从而导致的参数<span
+class="math inline">\(w_j\)</span>减去了学习率与公式的乘积，因此当$ w_j
+&gt; 0 <span class="math inline">\(的时候，\)</span> w_j<span
+class="math inline">\(会减去一个正数，导致\)</span> w_j <span
+class="math inline">\(减小，而当\)</span> w_j &lt; 0 <span
+class="math inline">\(的时候，\)</span> w_j<span
+class="math inline">\(会减去一个负数，导致\)</span> w_j<span
+class="math inline">\(又变大，因此这个正则项会导致参数\)</span>
+w_j$取值趋近于0，也就是为什么L1正则能够使权重稀疏，这样参数值就受到控制会趋近于0。L1正则还被称为
+Lasso regularization。</p>
+<p>然后针对L2范数<span class="math inline">\(\phi(w) =
+\sum_{j=1}^{n}w_j^2\)</span>，同样对它求导，得到梯度变化为<span
+class="math inline">\(\frac{\partial \Phi(w)}{\partial w_j} =
+2w_j\)</span>(一般会用<span
+class="math inline">\(\frac{\lambda}{2}\)</span>来把这个系数2给消掉)。同样的更新之后使得$
+w_j$的值不会变得特别大。在机器学习中也将L2正则称为weight
+decay，在回归问题中，关于L2正则的回归还被称为Ridge
+Regression岭回归。weight
+decay还有一个好处，它使得目标函数变为凸函数，梯度下降法和L-BFGS都能收敛到全局最优解。</p>
+<p><strong>需要注意的是</strong>，L1正则化会导致参数值变为0，但是L2却只会使得参数值减小，这是因为L1的导数是固定的，参数值每次的改变量是固定的，而L2会由于自己变小改变量也变小。而公式<span
+class="math inline">\(\eqref{eq:reg}\)</span>中的<span
+class="math inline">\(\lambda\)</span>也有着很重要的作用，它在权衡拟合能力和泛化能力对整个模型的影响，<span
+class="math inline">\(\lambda\)</span>越大，对参数值惩罚越大，泛化能力越好。</p>
+<h1 id="机器学习实战代码">《机器学习实战》代码</h1>
+<p>梯度上升法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gradAscent</span>(<span class="params">dataMatIn, classLabels</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;梯度上升法&quot;&quot;&quot;</span></span><br><span class="line">    dataMatrix = mat(dataMatIn)</span><br><span class="line">    labelMat = mat(classLabels).transpose()</span><br><span class="line">    m, n = shape(dataMatrix)</span><br><span class="line">    alpha = <span class="number">0.1</span></span><br><span class="line">    maxCycles = <span class="number">500</span></span><br><span class="line">    weights = ones((n, <span class="number">1</span>))</span><br><span class="line">    <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(maxCycles):</span><br><span class="line">        a = dataMatrix * weights</span><br><span class="line">        h = sigmoid(dataMatrix * weights)  <span class="comment"># 100*3 3*1</span></span><br><span class="line">        error = (labelMat - h)</span><br><span class="line">        weights = weights + alpha / m * dataMatrix.transpose() * error</span><br><span class="line">    <span class="keyword">return</span> weights</span><br></pre></td></tr></table></figure>
+<p>随机梯度下降法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">stocGradAscent0</span>(<span class="params">dataMatrix, classLabels</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;随机梯度上升法，但是迭代次数不够，且可能存在局部波动现象&quot;&quot;&quot;</span></span><br><span class="line">    m, n = shape(dataMatrix)</span><br><span class="line">    alpha = <span class="number">0.01</span></span><br><span class="line">    weights = ones(n)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(m):</span><br><span class="line">        h = sigmoid(<span class="built_in">sum</span>(dataMatrix[i] * weights))</span><br><span class="line">        error = classLabels[i] - h</span><br><span class="line">        weights = weights + alpha * error * dataMatrix[i]</span><br><span class="line">    <span class="keyword">return</span> weights</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">stocGradAscent1</span>(<span class="params">dataMatrix, classLabels, numIter=<span class="number">150</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;改进的随机梯度上升法&quot;&quot;&quot;</span></span><br><span class="line">    m, n = dataMatrix.shape</span><br><span class="line">    weights = ones(n)</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(numIter):</span><br><span class="line">        dataIndex = <span class="built_in">range</span>(m)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(m):</span><br><span class="line">            alpha = <span class="number">4</span> / (<span class="number">1.0</span> + j + i) + <span class="number">0.01</span> <span class="comment"># alpha在每次迭代时都进行了调整</span></span><br><span class="line">            randIndex = <span class="built_in">int</span>(random.uniform(<span class="number">0</span>, <span class="built_in">len</span>(dataIndex))) <span class="comment"># 随机选取样本数据</span></span><br><span class="line">            h = sigmoid(<span class="built_in">sum</span>(dataMatrix[randIndex] * weights))</span><br><span class="line">            error = classLabels[randIndex] - h</span><br><span class="line">            weights = weights + alpha * error * dataMatrix[randIndex]</span><br><span class="line">            <span class="keyword">del</span> (dataIndex[randIndex])</span><br><span class="line">    <span class="keyword">return</span> weights</span><br></pre></td></tr></table></figure>
+<h1 id="问题">问题</h1>
+<ol type="1">
+<li><p>LR为什么使用最大似然函数作为损失函数，而不是用MSE？</p>
+<p>选用MSE作为损失函数时，求导形式为<span
+class="math inline">\(\frac{\partial C}{\partial w}=(\hat{y} -
+y)\sigma&#39;(z)x\)</span>，这个梯度是和sigmoid导数有关的，当模型的输出接近0或者1时，<span
+class="math inline">\(\sigma&#39;(z)\)</span>就会非常小，造成梯度消失的问题。</p></li>
+</ol>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<p><a
+target="_blank" rel="noopener" href="http://blog.csdn.net/dongtingzhizi/article/details/15962797">【机器学习笔记1】Logistic回归总结</a>
+<a
+target="_blank" rel="noopener" href="https://chenrudan.github.io/blog/2016/01/09/logisticregression.html">【机器学习算法系列之二】浅析Logistic
+Regression</a> <a
+target="_blank" rel="noopener" href="http://blog.csdn.net/itplus/article/details/21896453">牛顿法与拟牛顿法学习笔记（一）牛顿法</a></p>
+</blockquote>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%A8%A1%E5%9E%8B/" rel="tag"># 模型</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/22/SMOTE%E7%AE%97%E6%B3%95/" rel="prev" title="SMOTE算法">
+                  <i class="fa fa-chevron-left"></i> SMOTE算法
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/26/%E6%A6%82%E7%8E%87%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E5%92%8C%E6%A6%82%E7%8E%87%E5%AF%86%E5%BA%A6%E5%87%BD%E6%95%B0/" rel="next" title="概率分布函数和概率密度函数">
+                  概率分布函数和概率密度函数 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

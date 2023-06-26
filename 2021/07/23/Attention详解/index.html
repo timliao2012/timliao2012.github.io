@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="Attention机制模仿生物观察行为的内部过程，将内部经验和外部对齐，从而增加部分区域的观察精细度。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Attention详解">
+<meta property="og:url" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="Attention机制模仿生物观察行为的内部过程，将内部经验和外部对齐，从而增加部分区域的观察精细度。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/encoder-decoder.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention_matrix.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention_architecture.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention_qkv.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention1.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention2.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention3.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention4.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention5.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention6.gif">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/attention.png">
+<meta property="article:published_time" content="2021-07-23T07:53:22.000Z">
+<meta property="article:modified_time" content="2023-06-26T13:53:36.873Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="attention">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/encoder-decoder.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/","path":"2021/07/23/Attention详解/","title":"Attention详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Attention详解 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#attention%E6%9C%BA%E5%88%B6"><span class="nav-text">Attention机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#attention%E5%8E%9F%E7%90%86"><span class="nav-text">Attention原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%90%86%E8%A7%A3"><span class="nav-text">其他理解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/07/23/Attention%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Attention详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-23 15:53:22" itemprop="dateCreated datePublished" datetime="2021-07-23T15:53:22+08:00">2021-07-23</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 21:53:36" itemprop="dateModified" datetime="2023-06-26T21:53:36+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/dl/" itemprop="url" rel="index"><span itemprop="name">dl</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Attention机制模仿生物观察行为的内部过程，将内部经验和外部对齐，从而增加部分区域的观察精细度。</p>
+<span id="more"></span>
+<h1 id="attention机制">Attention机制</h1>
+<p>在一般的Encoder-Decoder框架中，模型会将所有输入的<span
+class="math inline">\(X\)</span>都转化成语义表示<span
+class="math inline">\(C\)</span>，这将导致Decoder出来的每个字都是同权的考虑了输入中的所有词。例如<code>Tom chase Jerry</code>目标翻译的结果是：<code>汤姆追逐杰瑞</code>。在未考虑注意力机制的模型中，<code>汤姆</code>这个词的翻译收到<code>Tom</code>、<code>chase</code>和<code>Jerry</code>三个词同权重的影响。但实际上，<code>汤姆</code>这个词的翻译应该受到<code>Tom</code>这个词的影响最大！</p>
+<p>在带有Attention机制的Encoder-Decoder模型需要从序列中学习到每一个元素的重要成都，然后按照重要程度将元素合并。因此，注意力机制可以看作是
+Encoder 和 Decoder 之间的接口，它向 Decoder 提供来自每个 Encoder
+隐藏状态的信息。通过该设置，模型能够选择性地关注输入序列的有用部分，从而学习它们之间的“对齐”。这就表明，在
+Encoder 将输入的序列元素进行编码时，得到的不在是一个固定的语义编码 C
+，而是存在多个语义编码，且不同的语义编码由不同的序列元素以不同的权重参数组合而成。一个简单地体现
+Attention 机制运行的示意图如下：</p>
+<figure>
+<img src="encoder-decoder.png" alt="Encoder-Decoder" />
+<figcaption aria-hidden="true">Encoder-Decoder</figcaption>
+</figure>
+<p>在 Attention 机制下，语义编码 <span class="math inline">\(C\)</span>
+就不在是输入序列 <span class="math inline">\(X\)</span>
+的直接编码了，而是各个元素按其重要程度加权求和得到的，即 <span
+class="math display">\[
+C_i=\sum^{T_x}_{j=0}{a_{ij}f(x_j)}
+\]</span> 其中，<span class="math inline">\(i\)</span>表示时刻，<span
+class="math inline">\(j\)</span> 表示序列中的第 <span
+class="math inline">\(j\)</span> 个元素， <span
+class="math inline">\(T_x\)</span> 表示序列的长度， <span
+class="math inline">\(f(⋅)\)</span>表示对元素 <span
+class="math inline">\(x_j\)</span>x的编码。<span
+class="math inline">\(a_{ij}\)</span>可以看作是一个概率，反映了元素
+<span class="math inline">\(h_j\)</span> 对 <span
+class="math inline">\(C_i\)</span> 的重要性，可以使用 softmax 来表示：
+<span class="math display">\[
+a_{ij}=\frac{exp(e_{ij})}{\sum_{k=1}^{T_x}exp(e_{ik})}
+\]</span> 这里<span class="math inline">\(e_{ij}\)</span>
+正是反映了待编码的元素和其它元素之间的匹配度，当匹配度越高时，说明该元素对其的影响越大，则
+<span class="math inline">\(a_{ij}\)</span> 的值也就越大。</p>
+<p>因此，得出<span class="math inline">\(a_{ij}\)</span>
+的过程如下图：</p>
+<figure>
+<img src="attention_matrix.png" alt="Attention Matrix" />
+<figcaption aria-hidden="true">Attention Matrix</figcaption>
+</figure>
+<p>其中，<span class="math inline">\(h_i\)</span>表示 Encoder
+的转换函数，<span class="math inline">\(F(h_j,H_i)\)</span>
+表示预测与目标的匹配打分函数。将以上过程串联起来，则注意力模型的结构如下图所示：</p>
+<figure>
+<img src="attention_architecture.png" alt="Attention Architecture" />
+<figcaption aria-hidden="true">Attention Architecture</figcaption>
+</figure>
+<h1 id="attention原理">Attention原理</h1>
+<p>Attention 机制的一个重点就是获得 attention
+value，即机器翻译中的语义编码 <span
+class="math inline">\(C_i\)</span>。在上一节中我们知道该值是通过输入元素按照不同的权重参数组合而成的，所以我们可以将其定义为一个
+attention 函数，比较主流的 attention
+函数的机制是采用键值对查询的方式，其工作实质如下图所示：</p>
+<figure>
+<img src="attention_qkv.png" alt="Attention QKV" />
+<figcaption aria-hidden="true">Attention QKV</figcaption>
+</figure>
+<p>在自然语言任务中，往往 Key 和 Value
+是相同的。需要注意的是，计算出来的 attention value
+是一个向量，代表序列元素 <span class="math inline">\(x_j\)</span>
+的编码向量，包含了元素 <span class="math inline">\(x_j\)</span>
+的上下文关系，即同时包含全局联系和局部联系。全局联系很好理解，因为在计算时考虑了该元素与其他所有元素的相似度计算；而局部联系则是因为在对元素
+<span class="math inline">\(x_j\)</span>
+进行编码时，重点考虑与其相似度较高的局部元素，尤其是其本身。</p>
+<p><strong>Step 1：准备隐藏状态</strong></p>
+<p>首先准备第一个 Decoder 的隐藏层状态（红色）和所有可用的 Encoder
+隐藏层状态（绿色）。在示例中，有 4 个 Encoder 隐藏状态和 1 个 Decoder
+隐藏状态。</p>
+<figure>
+<img src="attention1.gif" alt="Attention1" />
+<figcaption aria-hidden="true">Attention1</figcaption>
+</figure>
+<p><strong>Step 2：得到每一个 Encoder 隐藏状态的得分</strong></p>
+<p>分值（score）由 <code>score</code> 函数来获得，最简单的方法是直接用
+Decoder 隐藏状态和 Encoder 中的每一个隐藏状态进行点积。</p>
+<figure>
+<img src="attention2.gif" alt="Attention2" />
+<figcaption aria-hidden="true">Attention2</figcaption>
+</figure>
+<p><strong>Step 3：将所有得分送入 softmax 层</strong></p>
+<p>该部分实质上就是对得到的所有分值进行归一化，这样 <code>softmax</code>
+之后得到的所有分数相加为
+1。而且能够使得原本分值越高的隐藏状态，其对应的概率也越大，从而抑制那些无效或者噪音信息。</p>
+<figure>
+<img src="attention3.gif" alt="Attention3" />
+<figcaption aria-hidden="true">Attention3</figcaption>
+</figure>
+<p><strong>Step 4：用每个 Encoder 的隐藏状态乘以 softmax
+之后的得分</strong></p>
+<p>通过将每个编码器的隐藏状态与其softmax之后的分数(标量)相乘，我们得到
+对齐向量 或标注向量。这正是对齐产生的机制。</p>
+<figure>
+<img src="attention4.gif" alt="Attention4" />
+<figcaption aria-hidden="true">Attention4</figcaption>
+</figure>
+<p><strong>Step 5：将所有对齐的向量进行累加</strong></p>
+<p>对对齐向量进行求和，生成 <em>上下文向量</em>
+。上下文向量是前一步的对齐向量的聚合信息。</p>
+<figure>
+<img src="attention5.gif" alt="Attention5" />
+<figcaption aria-hidden="true">Attention5</figcaption>
+</figure>
+<p><strong>Step 6：把上下文向量送到 Decoder 中</strong></p>
+<p>通过将上下文向量和 Decoder
+的上一个隐藏状态一起送入当前的隐藏状态，从而得到解码后的输出。</p>
+<figure>
+<img src="attention6.gif" alt="Attention6" />
+<figcaption aria-hidden="true">Attention6</figcaption>
+</figure>
+<p>最终得到完整的注意力层结构如下图所示：</p>
+<figure>
+<img src="attention.png" alt="Attention" />
+<figcaption aria-hidden="true">Attention</figcaption>
+</figure>
+<h1 id="其他理解">其他理解</h1>
+<p>Q就是词的查询向量，K是“被查”向量，V是内容向量。</p>
+<p>简单来说一句话：Q是最适合查找目标的，K是最适合接收查找的，V就是内容，这三者不一定要一致，所以网络这么设置了三个向量，然后学习出最适合的Q,
+K, V，以此增强网络的能力。</p>
+<p>主要要理解Q，K的意义，可以<strong>类比搜索</strong>的过程：</p>
+<p>假设我们想查一篇文章，我们不会直接把文章的内容打上去，而是会在搜索框输入该文章的<strong>关键字</strong>，如果我们搜不到，我们往往会再换一个关键字，直到搜到为止，那么可以让我们搜到的关键字就是<strong>最适合查找目标文章的关键字</strong>。这个<strong>最适合查找目标文章的关键字就是Q。</strong></p>
+<p>那么搜索引擎拿到我们输入的关键字Q之后，就会把Q和库里面的文章对比，当然搜索引擎为了节省资源加快对比速度，提前把库里面的文章进行了处理提取了<strong>关键信息</strong>，关键信息有很多，那么那个关键信息能够使得搜索命中率高，那个就是<strong>最适合接收查找的关键信息，</strong>这个<strong>最适合接收查找的关键信息就是K</strong>。</p>
+<p>使用Q和K计算了相似度之后得到score，这就是相似度评分，之后有了相似度评分，就可以把内容V加权回去了。</p>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<ol type="1">
+<li><a
+target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzg5ODAzMTkyMg==&amp;mid=2247485860&amp;idx=1&amp;sn=e926a739784090b3779711164217b968&amp;chksm=c06981f9f71e08efb5f57441444f71a09f1d27fc667af656a5ad1173e32ad394201d02195a3a&amp;mpshare=1&amp;scene=1&amp;srcid=0618HMAYi4gzzwWfedLoOuSD&amp;key=cb6098335ab487a8ec84c95399379f16f975d33ce91588d73ecf857c54b543666b5927e231ad3a9b17bff0c20fff20fc49c262912dca050dee9465801de8a4cdc79e3d8f4fbc058345331fb691bcbacb&amp;ascene=1&amp;uin=MTE3NTM4MTY0NA%3D%3D&amp;devicetype=Windows+10&amp;version=62060833&amp;lang=zh_CN&amp;pass_ticket=ikhBXxX7PL%2Fal9hbIGXbRFA96ei74EF%2BcP8KdbP6UcV6mIpOfPWzVuju%2Bqw86q5r">动画图解Attention机制，让你一看就明白</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/ydcode/p/11038064.html">浅谈Attention机制的理解</a></li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/attention/" rel="tag"># attention</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/23/Transformer%E8%AF%A6%E8%A7%A3/" rel="prev" title="Transformer详解">
+                  <i class="fa fa-chevron-left"></i> Transformer详解
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/27/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1%E3%80%81%E6%A2%AF%E5%BA%A6%E7%88%86%E7%82%B8%E9%97%AE%E9%A2%98/" rel="next" title="深度学习中的梯度消失、梯度爆炸问题">
+                  深度学习中的梯度消失、梯度爆炸问题 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="word embedding 是文本表示的一类方法，将「不可计算」「非结构化」的词转化为「可计算」「结构化」的向量。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="word embedding">
+<meta property="og:url" content="https://timliao2012.github.io/2021/07/06/word-embedding/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="word embedding 是文本表示的一类方法，将「不可计算」「非结构化」的词转化为「可计算」「结构化」的向量。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/06/word-embedding/语言模型.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/06/word-embedding/word2vec.png">
+<meta property="article:published_time" content="2021-07-06T11:01:23.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.360Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="todo">
+<meta property="article:tag" content="word embedding">
+<meta property="article:tag" content="word2vec">
+<meta property="article:tag" content="GloVe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/2021/07/06/word-embedding/语言模型.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/07/06/word-embedding/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/07/06/word-embedding/","path":"2021/07/06/word-embedding/","title":"word embedding"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>word embedding | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E6%A6%82%E7%8E%87%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B"><span class="nav-text">神经概率语言模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#word2vec"><span class="nav-text">Word2Vec</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Ehierarchical-softmax%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-text">基于Hierarchical
+Softmax的模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Enegative-sampling%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-text">基于Negative Sampling的模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#glove"><span class="nav-text">Glove</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/07/06/word-embedding/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          word embedding
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-06 19:01:23" itemprop="dateCreated datePublished" datetime="2021-07-06T19:01:23+08:00">2021-07-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/nlp/" itemprop="url" rel="index"><span itemprop="name">nlp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>word embedding
+是文本表示的一类方法，将「不可计算」「非结构化」的词转化为「可计算」「结构化」的向量。</p>
+<span id="more"></span>
+<p>这种方法有几个明显的优势：</p>
+<ol type="1">
+<li>他可以将文本通过一个低维向量来表达，不像 one-hot 那么长。</li>
+<li>语意相似的词在向量空间上也会比较相近。</li>
+<li>通用性很强，可以用在不同的任务中。</li>
+</ol>
+<h1 id="神经概率语言模型">神经概率语言模型</h1>
+<p>神经网络语言模型的提出解决了N-gram模型当𝑛较大时会发生数据稀疏的问题。与N-gram语言模型相同，神经网络语言模型（NNLM）也是对𝑛元语言模型进行建模，估计<span
+class="math inline">\(P(x_i|x_{x-n+1},x_{x-n+2},...,x_{i-1})\)</span>的概率，与统计语言模型不同的是，神经网络语言模型不通过计数的方法对𝑛元条件概率进行估计，而是直接通过一个神经网络对其建模求解。</p>
+<p>语言模型的的<strong>训练样本</strong>：<span
+class="math inline">\((Context(w),w)\)</span></p>
+<figure>
+<img src="语言模型.png" alt="语言模型" />
+<figcaption aria-hidden="true">语言模型</figcaption>
+</figure>
+<p>神经网络语言模型的结构入上图所示，可以分为输入层、投影层、隐藏层和输出层：</p>
+<ol type="1">
+<li><strong>输入层</strong>：词<span
+class="math inline">\(x\)</span>的上下文，如果用N-gram的方法就是词<span
+class="math inline">\(x\)</span>的前<span
+class="math inline">\(n−1\)</span>个词了。每一个词都作为一个长度为<span
+class="math inline">\(V\)</span>的one-hot向量传入神经网络中。</li>
+<li><strong>投影层</strong>:投影层也叫embedding层，在投影层中，存在一个look-up表<span
+class="math inline">\(C\)</span>，<span
+class="math inline">\(C\)</span>被表示成一个<span
+class="math inline">\(V∗m\)</span>的自由参数矩阵，其中<span
+class="math inline">\(V\)</span>是词典的大小，而<span
+class="math inline">\(m\)</span>代表每个词投影后的维度。表<span
+class="math inline">\(C\)</span>中每一行都作为一个词向量存在，这个词向量可以理解为每一个词的另一种分布式表示。每一个one-hot向量都经过表<span
+class="math inline">\(C\)</span>的转化变成一个词向量。<span
+class="math inline">\(n−1\)</span>个词向量首尾相接的拼起来，转化为<span
+class="math inline">\((n−1)m\)</span>的列向量输入到下一层。</li>
+<li><strong>隐藏层</strong>：隐藏层的作用是进行非线性变换。<span
+class="math inline">\(𝑧=𝑡𝑎𝑛ℎ(𝑊𝑋+𝑏)\)</span></li>
+<li><strong>输出层</strong>：用softmax进行概率计算，计算词表<span
+class="math inline">\(V\)</span>的每个词的概率。<span
+class="math inline">\(𝑃(𝑥_𝑖)=𝑠𝑜𝑓𝑡𝑚𝑎𝑥(𝑧)\)</span></li>
+</ol>
+<p>函数<span
+class="math inline">\(F(w,Context(w),\theta)\)</span>中待确定的参数代表以下两个方面：</p>
+<ul>
+<li><p>词向量：<span class="math inline">\(v(w) \in R^m, w \in
+C\)</span>以及填充向量</p></li>
+<li><p>神经网络的参数：权重参数<span
+class="math inline">\(W、U\)</span>和偏置参数<span
+class="math inline">\(p、q\)</span></p>
+<p><span class="math inline">\(W \in R^{n_h \times (n-1)m}\)</span></p>
+<p><span class="math inline">\(p \in R^{n_h}\)</span></p>
+<p><span class="math inline">\(U \in R^{V \times n_h}\)</span></p>
+<p><span class="math inline">\(q \in R^V\)</span></p></li>
+</ul>
+<p>词向量在神经概率语言模型中扮演的角色：训练时，它用来帮助构造目标函数的辅助参数，训练完成后，它只是语言模型的一个副产品。</p>
+<h1 id="word2vec">Word2Vec</h1>
+<p>word2vec中到的两个重要模型：</p>
+<ul>
+<li><strong>CBOW模型（Continuous Bag-of-Words
+Model）：</strong>已知上下文<span
+class="math inline">\(w_{t-2},w_{t-1},w_{t+1},w{t+2}\)</span>的前提下，预测当前词<span
+class="math inline">\(w_t\)</span></li>
+<li><strong>Skip-gram模型（Continuous Skip-gram
+Model)：</strong>已知当前词<span
+class="math inline">\(w_t\)</span>的前提下，预测上下文<span
+class="math inline">\(w_{t-2},w_{t-1},w_{t+1},w_{t+2}\)</span></li>
+</ul>
+<figure>
+<img src="word2vec.png" alt="word2vec" />
+<figcaption aria-hidden="true">word2vec</figcaption>
+</figure>
+<h2 id="基于hierarchical-softmax的模型">基于Hierarchical
+Softmax的模型</h2>
+<ul>
+<li>Huffman树</li>
+</ul>
+<h2 id="基于negative-sampling的模型">基于Negative Sampling的模型</h2>
+<p>随机负采样</p>
+<h1 id="glove">Glove</h1>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<ol type="1">
+<li><a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/huangyc/p/9861453.html">语言模型</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/heyc861221/article/details/80126134">漫谈词向量</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_27586341/article/details/90146342">word2vec原理（一）：
+词向量、CBOW与Skip-Gram模型基础</a></li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/todo/" rel="tag"># todo</a>
+              <a href="/tags/word-embedding/" rel="tag"># word embedding</a>
+              <a href="/tags/word2vec/" rel="tag"># word2vec</a>
+              <a href="/tags/GloVe/" rel="tag"># GloVe</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/06/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C-Neural-Networks/" rel="prev" title="神经网络 Neural Networks">
+                  <i class="fa fa-chevron-left"></i> 神经网络 Neural Networks
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/08/ESIM/" rel="next" title="ESIM">
+                  ESIM <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="GBDT 的全称是 Gradient Boosting Decision Tree，梯度提升树，想要理解GBDT的真正意义，那就必须理解GBDT中的Gradient Boosting 和Decision Tree。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GBDT算法原理">
+<meta property="og:url" content="https://timliao2012.github.io/2021/06/28/GBDT%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="GBDT 的全称是 Gradient Boosting Decision Tree，梯度提升树，想要理解GBDT的真正意义，那就必须理解GBDT中的Gradient Boosting 和Decision Tree。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-28T14:56:23.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.321Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="GBDT">
+<meta property="article:tag" content="cart">
+<meta property="article:tag" content="boosting tree">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/06/28/GBDT%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/06/28/GBDT%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86/","path":"2021/06/28/GBDT算法原理/","title":"GBDT算法原理"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>GBDT算法原理 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#decision-treecart%E5%9B%9E%E5%BD%92%E6%A0%91"><span class="nav-text">Decision Tree：CART回归树</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gradient-boosting%E6%8B%9F%E5%90%88%E8%B4%9F%E6%A2%AF%E5%BA%A6"><span class="nav-text">Gradient Boosting：拟合负梯度</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gbdt%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86"><span class="nav-text">GBDT算法原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/06/28/GBDT%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GBDT算法原理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-06-28 22:56:23" itemprop="dateCreated datePublished" datetime="2021-06-28T22:56:23+08:00">2021-06-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ml/" itemprop="url" rel="index"><span itemprop="name">ml</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>GBDT 的全称是 Gradient Boosting Decision
+Tree，梯度提升树，想要理解GBDT的真正意义，那就必须理解GBDT中的Gradient
+Boosting 和Decision Tree。</p>
+<span id="more"></span>
+<h1 id="decision-treecart回归树">Decision Tree：CART回归树</h1>
+<p>GBDT使用的决策树通通都是都是CART回归树。为什么不用CART分类树呢？因为GBDT每次迭代要拟合的是<strong>梯度值</strong>，是连续值所以要用回归树。</p>
+<p>对于回归树算法来说最重要的是寻找最佳的划分点，那么回归树中的可划分点包含了所有特征的所有可取的值。</p>
+<p>在<strong>分类树</strong>中最佳划分点的判别标准是熵或者基尼系数，都是用<strong>纯度</strong>来衡量的，但是在<strong>回归树</strong>中的样本标签是连续数值，所以再使用熵之类的指标不再合适，取而代之的是<strong>平方误差</strong>，它能很好的评判拟合程度。</p>
+<p><strong>回归树生成算法:</strong></p>
+<p><strong>输入:</strong> 训练数据集$ D$</p>
+<p><strong>输出:</strong> 回归树 <span
+class="math inline">\(f(x)\)</span></p>
+<p>在训练数据集所在的输入空间中，递归的将每个区域划分为两个子区域并决定每个子区域上的输出值，构建二叉决策树：</p>
+<ol type="1">
+<li><p>选择最优切分变量$ j$与切分点 <span
+class="math inline">\(s\)</span>， 求解:</p>
+<p><span class="math display">\[
+\min_{j,s}[\min_{c_1}\sum_{x_i \in R_1(j, s)}
+(y_i-   c_1)^2+\min_{c_2}\sum_{x_i \in R_2(j, s)} (y_i-c_2)^2]
+\]</span></p>
+<p>遍历变量<span class="math inline">\(j\)</span>，对固定的切分变量<span
+class="math inline">\(j\)</span>扫描切分点 <span
+class="math inline">\(s\)</span>，选择使得上式达到最小值的对 <span
+class="math inline">\((j,s)\)</span>.</p>
+<p><strong>简要解释一下上述公式</strong>：中括号里面的公式是求出每个特征变量在哪一个划分点时损失函数最小，最外面的
+<span class="math inline">\(min\)</span>
+是在所有特征值，求得使损失函数全局最小的特征及其切分点<span
+class="math inline">\((j^*, s^*)\)</span>;</p></li>
+<li><p>用选定的对 <span class="math inline">\((j,s)\)</span>
+划分区域并决定相应的输出值：</p>
+<p><span class="math display">\[
+R_1(j, s)=\{x|x^{(j)}\leq s\},R_2(j, s)=\{x|x^{(j)} &gt; s\}
+\]</span></p>
+<p><span class="math display">\[
+\hat {c_m}=\frac{1}{N}\sum_{x_1 \in R_m(j, s)}y_i, x \in R_m, m=1,2
+\]</span></p>
+<p>划分区域的输出值就是将该区域的所有样本的<strong>输出值求平均</strong>。</p></li>
+<li><p>继续对两个子区域调用步骤（1）和（2），直至满足停止条件。</p></li>
+<li><p>将输入空间划分为<span class="math inline">\(M\)</span>个区域<span
+class="math inline">\(R_1,R_2…R_M\)</span>，得到决策树</p></li>
+</ol>
+<p><span class="math display">\[
+f(x)=\sum_{m=1}^M \hat{c_m}I(x \in R_m)
+\]</span></p>
+<h1 id="gradient-boosting拟合负梯度">Gradient Boosting：拟合负梯度</h1>
+<p>梯度提升树（Grandient Boosting）是提升树（Boosting
+Tree）的一种改进算法，所以在讲梯度提升树之前先来说一下提升树。</p>
+<p><strong>提升树算法:</strong></p>
+<ol type="1">
+<li><p>初始化$ f0(x)=0$</p></li>
+<li><p>对<span class="math inline">\(m=1,2…M\)</span></p>
+<ol type="1">
+<li><p>计算残差 <span class="math display">\[
+r_{mi}=y_i-f_{m-1}(x_i), i=1, 2,...,M
+\]</span></p></li>
+<li><p>拟合残差$ r_{mi}$ 学习一个回归树，得到 <span
+class="math inline">\(h_m(x)\)</span></p></li>
+<li><p>更新 <span
+class="math inline">\(f_m(x)=f_{m-1}(x)+h_m(x)\)</span></p></li>
+</ol></li>
+<li><p>得到回归树 <span class="math display">\[
+f_{M}(x)=\sum_{m=1}^Mh_m(x)
+\]</span></p></li>
+</ol>
+<p>上面伪代码中的<strong>残差</strong>是什么？</p>
+<p>在提升树算法中，假设我们前一轮迭代得到的强学习器是</p>
+<p><span class="math display">\[
+f_{t-1}(x)
+\]</span></p>
+<p>损失函数是</p>
+<p><span class="math display">\[
+L(y, f_{t-1}(x))
+\]</span> 我们本轮迭代的目标是找到一个弱学习器</p>
+<p><span class="math display">\[
+h_{t}(x)
+\]</span></p>
+<p>当采用平方损失函数时</p>
+<p><span class="math display">\[
+\begin{aligned}
+    &amp; L(y, f_{t-1}(x)+h_t(x)) \\
+    &amp; = (y - f_{t-1}(x) - h_t(x))^2 \\
+    &amp; =(r - h_t(x))^2 \\
+\end{aligned}
+\]</span></p>
+<p>这里，</p>
+<p><span class="math display">\[
+r = y - f_{t-1}(x)
+\]</span>
+是当前模型拟合数据的<strong>残差（residual）</strong>。所以，对于提升树来说只需要简单地拟合当前模型的残差。</p>
+<p>当损失函数是平方损失和指数损失函数时，梯度提升树每一步优化是很简单的，但是对于一般损失函数而言，往往每一步优化起来不那么容易，针对这一问题，Freidman提出了梯度提升树算法，这是利用最速下降的近似方法，<strong>其关键是利用损失函数的负梯度作为提升树算法中的残差的近似值。</strong></p>
+<p>第<span class="math inline">\(t\)</span>轮的第<span
+class="math inline">\(i\)</span>个样本的损失函数的负梯度为： <span
+class="math display">\[
+-[\frac{\partial {L(y, f(x_i))}}{\partial {f(x_i)}}]\_{f(x)=f_{t-1}(x)}
+\]</span> 此时不同的损失函数将会得到不同的负梯度，如果选择平方损失:
+<span class="math display">\[
+L(y, f(x_i))=\frac{1}{2}(y-f(x_i))^2
+\]</span> 负梯度为 <span class="math display">\[
+-[\frac{\partial {L(y, f(x_i))}}{\partial
+{f(x_i)}}]\_{f(x)=f_{t-1}(x)}=-[\frac{\partial
+\frac{1}{2}(y-f(x_i))^2}{\partial {f(x_i)}}]\_{f(x)=f_{t-1}(x)}=y-f(x_i)
+\]</span>
+此时我们发现GBDT的<strong>负梯度就是残差</strong>，所以说对于回归问题，我们要拟合的就是残差。</p>
+<blockquote>
+<p><strong>gbdt的残差为什么用负梯度代替？</strong></p>
+<ol type="1">
+<li><p>通过一阶泰勒展开证明负梯度方向是下降最快的方向 <span
+class="math display">\[
+f(\theta_{k+1}) \approx
+f(\theta_k)+\frac{\partial{f(\theta_k)}}{\partial{\theta_k}}(\theta_{k+1}-\theta_k)
+\]</span></p></li>
+<li><p>在GB中，对损失函数展开： <span class="math display">\[
+L(y,F_m(x))\approx L(y, F_{m-1}(x))+\frac{\partial{L(y,
+F_{m-1}(x))}}{\partial{ F_{m-1}(x)}}(F_m(x)-F_{m-1}(x))
+\]</span> 即有： <span class="math display">\[
+L(y,F_m(x))\approx L(y, F_{m-1}(x))+\frac{\partial{L(y,
+F_{m-1}(x))}}{\partial{ F_{m-1}(x)}}T_m(x)
+\]</span> 则在优化<span class="math inline">\(L(y,F(x))\)</span>时，
+<span class="math display">\[
+F_m(x)=F_{m-1}(x)-\eta \frac{\partial{L(y, F_{m-1}(x))}}{\partial{
+F_{m-1}(x)}}
+\]</span> 即，<span class="math inline">\(T_m(x)=-\eta
+\frac{\partial{L(y, F_{m-1}(x))}}{\partial{
+F_{m-1}(x)}}\)</span></p></li>
+</ol>
+<p>所以需要当前的弱学习器来学习负梯度，这里和GBDT中差了一个 <span
+class="math inline">\(\eta\)</span>.</p>
+<ol start="3" type="1">
+<li><p>在1和2中都是随机梯度下降，但是不同的是：</p>
+<ol type="1">
+<li>在参数空间中优化，每次迭代得到参数的增量，这个增量就是负梯度乘上学习率；</li>
+<li>在函数空间中优化，每次得到增量函数，这个函数会去拟合负梯度，在GBDT中就是一个个决策树。</li>
+</ol></li>
+</ol>
+<p>要得到最终结果，只需要把初始值或者初始的函数加上每次的增量。所以1的优化过程是(假设迭代了M次)：</p>
+<p>无论损失函数是什么形式，每个决策树拟合的都是负梯度。准确的说，不是用负梯度代替残差，而是当损失函数是均方损失时，负梯度刚好是残差，<strong>残差只是特例</strong>。</p>
+</blockquote>
+<h1 id="gbdt算法原理">GBDT算法原理</h1>
+<p>上面两节分别将Decision Tree和Gradient
+Boosting介绍完了，下面将这两部分组合在一起就是我们的GBDT了。</p>
+<p><strong>GBDT算法：</strong></p>
+<ol type="1">
+<li><p>初始化弱学习器 <span class="math display">\[
+f_0(x)=\arg \min_{c}\sum_{i=1}^{N}L(y_i, c)
+\]</span> 当为平方损失时，<span
+class="math inline">\(f_0(x)=\frac{\sum_{i=1}^N
+y_i}{N}\)</span></p></li>
+<li><p>对<span class="math inline">\(m=1,2,…,M\)</span>有：</p>
+<ol type="a">
+<li>对每个样本<span
+class="math inline">\(i=1,2,…,N\)</span>，计算负梯度，即残差</li>
+</ol>
+<p><span class="math display">\[
+r_{im}=-[\frac{\partial{L(y_i, f(x_i))}}{\partial
+f(x_i)}]\_{f(x)=f_{m-1}(x)}
+\]</span></p>
+<ol start="2" type="a">
+<li><p>将上步得到的残差作为样本新的真实值，并将数据<span
+class="math inline">\((x_i, x_im), i=1,
+2,…,N\)</span>作为下棵树的训练数据，得到一颗新的回归树$
+f_m(x)$，其对应的叶子节点区域为 <span class="math inline">\(R_jm, j=1,
+2,…,J\)</span>。其中J为回归树<span
+class="math inline">\(t\)</span>的叶子节点的个数。</p></li>
+<li><p>对叶子区域$ j=1,2,..J$计算最佳拟合值 <span
+class="math display">\[
+\gamma_{jm}=\arg \min_{\gamma}\sum_{x_i \in R_{jm}}L(y_i,
+f_{m-1}(x_i)+\gamma) (对 \gamma求导并令导数为0即可求得)
+\]</span></p></li>
+<li><p>更新强学习器 <span class="math display">\[
+f_m(x)=f_{m-1}(x)+\sum_{j=1}^{J}\gamma_{jm}I(x \in R_{jm})
+\]</span></p></li>
+</ol></li>
+<li><p>得到最终学习器 <span class="math display">\[
+f(x)=f_M{x}=f_{0}(x)+\sum_{m=1}^{M}\sum_{j=1}^{J}\gamma_{jm}I(x \in
+R_{jm})
+\]</span></p></li>
+</ol>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<ol type="1">
+<li><a
+target="_blank" rel="noopener" href="https://ranmaosong.github.io/2019/04/27/ML-GBDT/">GBDT算法原理以及实例理解</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/63560633/answer/581670747">gbdt的残差为什么用负梯度代替？</a></li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GBDT/" rel="tag"># GBDT</a>
+              <a href="/tags/cart/" rel="tag"># cart</a>
+              <a href="/tags/boosting-tree/" rel="tag"># boosting tree</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/28/%E6%A0%91%E6%A8%A1%E5%9E%8B%E5%8E%9F%E7%90%86%E4%B8%8E%E5%8C%BA%E5%88%AB/" rel="prev" title="树模型原理与区别">
+                  <i class="fa fa-chevron-left"></i> 树模型原理与区别
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/01/%E6%99%BA%E8%83%BD%E5%AE%A2%E6%9C%8D%E7%B3%BB%E7%BB%9F/" rel="next" title="智能客服系统">
+                  智能客服系统 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="损失函数旨在表示出logit和label的差异程度，不同的损失函数有不同的表示意义，也就是在最小化损失函数过程中，logit逼近label的方式不同，得到的结果可能也不同。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习损失函数">
+<meta property="og:url" content="https://timliao2012.github.io/2021/06/27/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="损失函数旨在表示出logit和label的差异程度，不同的损失函数有不同的表示意义，也就是在最小化损失函数过程中，logit逼近label的方式不同，得到的结果可能也不同。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-27T01:22:04.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.325Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="todo">
+<meta property="article:tag" content="loss">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/06/27/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/06/27/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/","path":"2021/06/27/机器学习损失函数/","title":"机器学习损失函数"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>机器学习损失函数 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E7%B1%BB%E6%8D%9F%E5%A4%B1"><span class="nav-text">分类损失</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#entropy"><span class="nav-text">Entropy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cross-entropy"><span class="nav-text">Cross Entropy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#k-l-divergence"><span class="nav-text">K-L Divergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dice-loss"><span class="nav-text">Dice Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#focal-loss"><span class="nav-text">Focal Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tversky-loss"><span class="nav-text">Tversky Loss</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9E%E5%BD%92%E6%8D%9F%E5%A4%B1"><span class="nav-text">回归损失</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#l1-loss-mean-absolute-error-mae"><span class="nav-text">L1 Loss (Mean Absolute Error
+MAE)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#l2-lossmean-squred-error-mse"><span class="nav-text">L2 Loss(Mean Squred Error
+MSE)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#smooth-l1-loss"><span class="nav-text">Smooth L1 Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iou-loss"><span class="nav-text">IoU Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#glou-loss"><span class="nav-text">GloU Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dlou-loss"><span class="nav-text">DloU Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#clou-loss"><span class="nav-text">CloU Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#f-eiou-loss"><span class="nav-text">F-EIoU Loss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cdlou-loss"><span class="nav-text">CDloU Loss</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#logloss%E5%AF%B9%E6%95%B0%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-text">LogLoss对数损失函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/06/27/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机器学习损失函数
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-06-27 09:22:04" itemprop="dateCreated datePublished" datetime="2021-06-27T09:22:04+08:00">2021-06-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ml/" itemprop="url" rel="index"><span itemprop="name">ml</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>损失函数旨在表示出logit和label的差异程度，不同的损失函数有不同的表示意义，也就是在最小化损失函数过程中，logit逼近label的方式不同，得到的结果可能也不同。</p>
+<span id="more"></span>
+<p>损失函数（loss function）是用来<strong>估量模型的预测值<span
+class="math inline">\(f(x)\)</span>与真实值<span
+class="math inline">\(Y\)</span>的不一致程度</strong>，它是一个非负实值函数,通常使用<span
+class="math inline">\(L(Y,
+f(x))\)</span>来表示，损失函数越小，模型的鲁棒性就越好。损失函数是<strong>经验风险函数</strong>的核心部分，也是<strong>结构风险函数</strong>重要组成部分。模型的结构风险函数包括了经验风险项和正则项，通常可以表示成如下式子：
+<span class="math display">\[
+\theta^*=arg  min_{\theta}{\frac{1}{N}\sum_{i=1}^{N}L(y_i,f(x_i,\theta))+\lambda\Phi(\theta)}
+\]</span></p>
+<h1 id="分类损失">分类损失</h1>
+<h2 id="entropy">Entropy</h2>
+<h2 id="cross-entropy">Cross Entropy</h2>
+<h2 id="k-l-divergence">K-L Divergence</h2>
+<h2 id="dice-loss">Dice Loss</h2>
+<h2 id="focal-loss">Focal Loss</h2>
+<h2 id="tversky-loss">Tversky Loss</h2>
+<h1 id="回归损失">回归损失</h1>
+<h2 id="l1-loss-mean-absolute-error-mae">L1 Loss (Mean Absolute Error
+MAE)</h2>
+<p>它衡量的是预测值与真实值之间距离的平均误差幅度，作用范围为0到正无穷。
+<span class="math display">\[
+L = \sum_{i=1}^{n}{|Y_i - f(x_i)|}
+\]</span> <strong>优点：</strong>
+收敛速度快，能够对梯度给予合适的惩罚权重，而不是“一视同仁”，使梯度更新的方向可以更加精确。</p>
+<p><strong>缺点：</strong>
+对异常值十分敏感，梯度更新的方向很容易受离群点所主导，不具备鲁棒性。</p>
+<h2 id="l2-lossmean-squred-error-mse">L2 Loss(Mean Squred Error
+MSE)</h2>
+<p>它衡量的是预测值与真实1值之间距离的平方和，作用范围同为0到正无穷。
+<span class="math display">\[
+L=\sum_{i=1}^{n}{(Y_i-f(x_i))^2}
+\]</span>
+均方误差可用于线性回归的一个原因是：我们假设观测中包含噪声，其中噪声服从正态分布：
+<span class="math display">\[
+y= \boldsymbol{w}^T \boldsymbol{x} + b +\epsilon
+\]</span> 其中， <span class="math inline">\(\epsilon ~
+N(0,\sigma^2)\)</span>。</p>
+<p>通过给定的<span
+class="math inline">\(\boldsymbol{x}\)</span>观测到特定<span
+class="math inline">\(y\)</span>的似然（likelihood）： <span
+class="math display">\[
+P(y|\boldsymbol{x})=\frac{1}{\sqrt{2\pi\sigma^2}}exp\left(
+-\frac{1}{2\sigma^2}(y-\boldsymbol{w}^T \boldsymbol{x} - b)^2 \right)
+\]</span> 根据最大似然估计法，参数<span
+class="math inline">\(\boldsymbol{w}\)</span>和<span
+class="math inline">\(b\)</span>的最优值是使整个数据集的似然最大的值：
+<span class="math display">\[
+P(\boldsymbol{y}|\boldsymbol{X})=\prod_{i=1}^{n}p(y^{(i)}|\boldsymbol{x}^{(i)})
+\]</span></p>
+<p>最小化负对数似然函数有： <span class="math display">\[
+-log(P(\boldsymbol{y}|\boldsymbol{X}))=\sum_{i=1}^{n}\frac{1}{2}log(2\pi\sigma^2)
++ \frac{1}{2\sigma^2}\left(y^{(i)}-\boldsymbol{w}^T\boldsymbol{x}^{i}-b
+\right)^2
+\]</span> 而<span
+class="math inline">\(\sigma\)</span>是某个固定的常数，于是上述公式第二部分与均方差误差一致。因此，在高斯噪声的假设下，最小化均方差等价于对线性模型的极大似然估计。</p>
+<h2 id="smooth-l1-loss">Smooth L1 Loss</h2>
+<h2 id="iou-loss">IoU Loss</h2>
+<h2 id="glou-loss">GloU Loss</h2>
+<h2 id="dlou-loss">DloU Loss</h2>
+<h2 id="clou-loss">CloU Loss</h2>
+<h2 id="f-eiou-loss">F-EIoU Loss</h2>
+<h2 id="cdlou-loss">CDloU Loss</h2>
+<h1 id="logloss对数损失函数">LogLoss对数损失函数</h1>
+<p>log损失函数的标准形式 <span class="math display">\[
+L(Y,P(Y|X)) = - logP(Y|X)
+\]</span></p>
+<p>损失函数<span class="math inline">\(L(Y,
+P(Y|X))\)</span>表达的是样本<span
+class="math inline">\(X\)</span>在分类<span
+class="math inline">\(Y\)</span>的情况下，使概率<span
+class="math inline">\(P(Y|X)\)</span>达到最大值（换言之，<strong>就是利用已知的样本分布，找到最有可能（即最大概率）导致这种分布的参数值；或者说什么样的参数才能使我们观测到目前这组数据的概率最大。</strong></p>
+<p>取对数是为了方便计算极大似然估计，因为在MLE（最大似然估计）中，直接求导比较困难，所以通常都是先取对数再求导找极值点。</p>
+<p>todo:</p>
+<p><span class="math display">\[
+max(L) --&gt; min(-L)
+\]</span></p>
+<p>各种损失函数的适用场景</p>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<p>1.<a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/guoyaohua/p/9217206.html">一文读懂机器学习常用损失函数（Loss
+Function）</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/todo/" rel="tag"># todo</a>
+              <a href="/tags/loss/" rel="tag"># loss</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/26/%E6%A6%82%E7%8E%87%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E5%92%8C%E6%A6%82%E7%8E%87%E5%AF%86%E5%BA%A6%E5%87%BD%E6%95%B0/" rel="prev" title="概率分布函数和概率密度函数">
+                  <i class="fa fa-chevron-left"></i> 概率分布函数和概率密度函数
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/28/%E6%9C%80%E5%A4%A7%E4%BC%BC%E7%84%B6%E4%BC%B0%E8%AE%A1%EF%BC%88MLE%EF%BC%89-%E6%9C%80%E5%A4%A7%E5%90%8E%E9%AA%8C%E6%A6%82%E7%8E%87%E4%BC%B0%E8%AE%A1%EF%BC%88MAP%EF%BC%89/" rel="next" title="最大似然估计（MLE） & 最大后验概率估计（MAP）">
+                  最大似然估计（MLE） & 最大后验概率估计（MAP） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

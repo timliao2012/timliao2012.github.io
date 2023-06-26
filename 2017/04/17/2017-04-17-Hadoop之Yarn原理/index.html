@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="YARN（Yet Another Resource Negotiator）是一个通用的资源管理平台，可为各类计算框架提供资源的管理和调度。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop之Yarn原理">
+<meta property="og:url" content="https://timliao2012.github.io/2017/04/17/2017-04-17-Hadoop%E4%B9%8BYarn%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="YARN（Yet Another Resource Negotiator）是一个通用的资源管理平台，可为各类计算框架提供资源的管理和调度。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/imgs/Hadoop/yarn/architecture.png">
+<meta property="og:image" content="https://timliao2012.github.io/imgs/Hadoop/yarn/yarn.png">
+<meta property="article:published_time" content="2017-04-17T11:43:49.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.318Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="hadoop">
+<meta property="article:tag" content="yarn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/imgs/Hadoop/yarn/architecture.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2017/04/17/2017-04-17-Hadoop%E4%B9%8BYarn%E5%8E%9F%E7%90%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2017/04/17/2017-04-17-Hadoop%E4%B9%8BYarn%E5%8E%9F%E7%90%86/","path":"2017/04/17/2017-04-17-Hadoop之Yarn原理/","title":"Hadoop之Yarn原理"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Hadoop之Yarn原理 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#hadoop-mapreduce-%E6%A1%86%E6%9E%B6%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">Hadoop MapReduce 框架的问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#yarn%E4%BB%8B%E7%BB%8D"><span class="nav-text">Yarn介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#yarn%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84"><span class="nav-text">YARN体系架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#yarn%E5%BA%94%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">YARN应用工作流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#yarn%E8%B5%84%E6%BA%90%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B"><span class="nav-text">YARN资源调度模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2017/04/17/2017-04-17-Hadoop%E4%B9%8BYarn%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hadoop之Yarn原理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-04-17 19:43:49" itemprop="dateCreated datePublished" datetime="2017-04-17T19:43:49+08:00">2017-04-17</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/hadoop/" itemprop="url" rel="index"><span itemprop="name">hadoop</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>YARN（Yet Another Resource
+Negotiator）是一个通用的资源管理平台，可为各类计算框架提供资源的管理和调度。</p>
+<span id="more"></span>
+<h1 id="hadoop-mapreduce-框架的问题">Hadoop MapReduce 框架的问题</h1>
+<p>随着分布式系统集群的规模和其工作负荷的增长，MapReduce
+框架的问题逐渐浮出水面，主要的问题集中如下：</p>
+<ol type="1">
+<li>JobTracker 是 Map-reduce 的集中处理点，存在单点故障。</li>
+<li>JobTracker 完成了太多的任务，造成了过多的资源消耗，当 map-reduce job
+非常多的时候，会造成很大的内存开销，潜在来说，也增加了 JobTracker fail
+的风险，这也是业界普遍总结出老 Hadoop 的 Map-Reduce 只能支持 4000
+节点主机的上限。</li>
+<li>在 TaskTracker 端，以 map/reduce task
+的数目作为资源的表示过于简单，没有考虑到 cpu/
+内存的占用情况，如果两个大内存消耗的 task 被调度到了一块，很容易出现
+OOM(Out-Of-Memory)。</li>
+<li>在 TaskTracker 端，把资源强制划分为 map task slot 和 reduce task
+slot, 如果当系统中只有 map task 或者只有 reduce task
+的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。</li>
+<li>源代码层面分析的时候，会发现代码非常的难读，常常因为一个 class
+做了太多的事情，代码量达 3000 多行，造成 class 的任务不清晰，增加 bug
+修复和版本维护的难度。</li>
+<li>从操作的角度来看，现在的 Hadoop MapReduce
+框架在有任何重要的或者不重要的变化 ( 例如 bug 修复，性能提升和特性化 )
+时，都会强制进行系统级别的升级更新。更糟的是，它不管用户的喜好，强制让分布式集群系统的每一个用户端同时更新。这些更新会让用户为了验证他们之前的应用程序是不是适用新的
+Hadoop 版本而浪费大量时间。</li>
+</ol>
+<h1 id="yarn介绍">Yarn介绍</h1>
+<p>Yarn的核心出发点是为了分离资源管理与作业调度/监控，实现分离的做法是拥有一个全局的资源管理器（ResourceManager，RM），以及每个应用程序对应一个的应用管理器（ApplicationMaster，AM），应用程序由一个作业（Job）或者Job的有向无环图（DAG）组成。</p>
+<p>YARN可以将多种计算框架(如离线处理MapReduce、在线处理的Storm、迭代式计算框架Spark、流式处理框架S4等)
+部署到一个公共集群中，共享集群的资源。并提供如下功能：</p>
+<ol type="1">
+<li>资源的统一管理和调度：
+集群中所有节点的资源(内存、CPU、磁盘、网络等)抽象为Container。计算框架需要资源进行运算任务时需要向YARN申请Container，
+YARN按照特定的策略对资源进行调度进行Container的分配。</li>
+<li>资源隔离：
+YARN使用了轻量级资源隔离机制Cgroups进行资源隔离以避免相互干扰，一旦Container使用的资源量超过事先定义的上限值，就将其杀死。</li>
+</ol>
+<p>YARN是对Mapreduce V1重构得到的，有时候也成为MapReduce V2。</p>
+<p>YARN可以看成一个云操作系统，由一个ResourceManager和多个NodeManager组成，
+它负责管理所有NodeManger上多维度资源，
+并以Container(启动一个Container相当于启动一个进程)方式分配给应用程序启动ApplicationMaster(相当于主进程中运行逻辑)
+或运行ApplicationMaster切分的各Task(相当于子进程中运行逻辑)。</p>
+<h1 id="yarn体系架构">YARN体系架构</h1>
+<p>YARN架构如下图所示：</p>
+<figure>
+<img src="/imgs/Hadoop/yarn/architecture.png" alt="YARN架构图" />
+<figcaption aria-hidden="true">YARN架构图</figcaption>
+</figure>
+<p>YARN总体上是Master/Slave结构，主要由ResourceManager、NodeManager、
+ApplicationMaster和Container等几个组件构成。</p>
+<ul>
+<li><p><strong>ResourceManager(RM)</strong>
+负责对各NodeManager上的资源进行统一管理和调度。将ApplicationMaster分配空闲的Container运行并监控其运行状态。对ApplicationMaster申请的资源请求分配相应的空闲Container。主要由两个组件构成：调度器和应用程序管理器：</p>
+<ol type="1">
+<li><strong>调度器(Scheduler)</strong>：调度器根据容量、队列等限制条件（如每个队列分配一定的资源，最多执行一定数量的作业等），将系统中的资源分配给各个正在运行的应用程序。调度器仅根据各个应用程序的资源需求进行资源分配，而资源分配单位是Container，从而限定每个任务使用的资源量。Scheduler不负责监控或者跟踪应用程序的状态，也不负责任务因为各种原因而需要的重启（由ApplicationMaster负责）。总之，调度器根据应用程序的资源要求，以及集群机器的资源情况，为应用程序分配封装在Container中的资源。</li>
+<li><strong>应用程序管理器(Applications
+Manager)</strong>：应用程序管理器负责管理整个系统中所有应用程序，包括应用程序提交、与调度器协商资源以启动ApplicationMaster、监控ApplicationMaster运行状态并在失败时重新启动等，跟踪分给的Container的进度、状态也是其职责。</li>
+</ol></li>
+<li><p><strong>NodeManager (NM)</strong>
+NodeManager是每个节点上的资源和任务管理器。它会定时地向ResourceManager汇报本节点上的资源使用情况和各个Container的运行状态；同时会接收并处理来自ApplicationMaster的Container
+启动/停止等请求。</p></li>
+<li><p><strong>ApplicationMaster (AM)</strong>
+用户提交的应用程序均包含一个ApplicationMaster，负责应用的监控，跟踪应用执行状态，重启失败任务等。ApplicationMaster是应用框架，它负责向ResourceManager协调资源，并且与NodeManager协同工作完成Task的执行和监控。MapReduce就是原生支持的一种框架，可以在YARN上运行Mapreduce作业。有很多分布式应用都开发了对应的应用程序框架，用于在YARN上运行任务，例如Spark，Storm等。</p></li>
+<li><p><strong>Container</strong>
+Container是YARN中的资源抽象，它封装了某个节点上的多维度资源，如内存、CPU、磁盘、网络等，当ApplicationMaster向ResourceManager申请资源时，ResourceManager为ApplicationMaster返回的资源便是用Container
+表示的。
+YARN会为每个任务分配一个Container且该任务只能使用该Container中描述的资源。</p></li>
+</ul>
+<h1 id="yarn应用工作流程">YARN应用工作流程</h1>
+<p>如下图所示用户向YARN中提交一个应用程序后，YARN将分两个阶段运行该应用程序：</p>
+<ol type="1">
+<li>启动ApplicationMaster，如下步骤1~3；</li>
+<li>由ApplicationMaster创建应用程序为它申请资源并监控它的整个运行过程，直到运行完成，如下步骤4~7。</li>
+</ol>
+<figure>
+<img src="/imgs/Hadoop/yarn/yarn.png" alt="YARN应用工作流程图" />
+<figcaption aria-hidden="true">YARN应用工作流程图</figcaption>
+</figure>
+<ol type="1">
+<li>用户向YARN中提交应用程序，其中包括ApplicationMaster程序、启动ApplicationMaster的命令、命令参数、用户程序等；事实上，需要准确描述运行ApplicationMaster的unix进程的所有信息。提交工作通常由YarnClient来完成。</li>
+<li>ResourceManager为该应用程序分配第一个Container，并与对应的NodeManager通信，要求它在这个Container中启动ApplicationMaster；</li>
+<li>ApplicationMaster首先向ResourceManager注册，这样用户可以直接通过ResourceManager査看应用程序的运行状态，运行状态通过
+<code>AMRMClientAsync.CallbackHandler</code>的<code>getProgress()</code>
+方法来传递给ResourceManager。
+然后它将为各个任务申请资源，并监控它的运行状态，直到运行结束，即重复步骤4〜7；</li>
+<li>ApplicationMaster采用轮询的方式通过RPC协议向ResourceManager申请和领取资源；资源的协调通过<code>AMRMClientAsync</code>异步完成,相应的处理方法封装在<code>AMRMClientAsync.CallbackHandler</code>中。</li>
+<li>一旦ApplicationMaster申请到资源后，便与对应的NodeManager通信，要求它启动任务；通常需要指定一个<code>ContainerLaunchContext</code>，提供Container启动时需要的信息。</li>
+<li>NodeManager为任务设置好运行环境(包括环境变量、JAR包、二进制程序等)后，将任务启动命令写到一个脚本中，并通过运行该脚本启动任务；</li>
+<li>各个任务通过某个RPC协议向ApplicationMaster汇报自己的状态和进度，以让ApplicationMaster随时掌握各个任务的运行状态，从而可以在任务失败时重新启动任务；ApplicationMaster与NodeManager的通信通过<code>NMClientAsync object</code>来完成，容器的所有事件通过<code>NMClientAsync.CallbackHandler</code>来处理。例如启动、状态更新、停止等。</li>
+<li>应用程序运行完成后，ApplicationMaster向ResourceManager注销并关闭自己。</li>
+</ol>
+<h1 id="yarn资源调度模型">YARN资源调度模型</h1>
+<p>YARN提供了一个资源管理平台能够将集群中的资源统一进行管理。所有节点上的多维度资源都会根据申请抽象为一个个Container。</p>
+<p>YARN采用了双层资源调度模型：</p>
+<ul>
+<li>ResourceManager中的资源调度器将资源分配给各个ApplicationMaster：资源分配过程是异步的。资源调度器将资源分配给一个应用程序后，它不会立刻push给对应的ApplicationMaster，而是暂时放到一个缓冲区中，等待ApplicationMaster通过周期性的心跳主动来取；</li>
+<li>ApplicationMaster领取到资源后再进一步分配给它内部的各个任务：不属于YARN平台的范畴，由用户自行实现。</li>
+</ul>
+<p>也就是说，ResourceManager分配集群资源的时候，以抽象的Container形式分配给各应用程序，至于应用程序的子任务如何使用这些资源，由应用程序自行决定。</p>
+<p>YARN目前采用的资源分配算法有三种。但真实的调度器实现中还对算法做了一定程度的优化。</p>
+<ol type="1">
+<li>Capacity
+Scheduler：该调度器用于在共享、多租户（multi-tenant）的集群环境中运行Hadoop应用，对运营尽可能友好的同时最大化吞吐量和效用。
+该调度器保证共享集群的各个组织能够得到容量的保证，同时可以超额使用集群中暂时没有人使用的资源。Capacity
+Scheduler为了实现这些目标，抽象了queue的概念，queue通常由管理员配置。为了进一步细分容量的使用，调度器支持层级化的queue（hierarchical
+queues），使得在特定组织内部，可以进一步有效利用集群资源。
+Capacity调度器支持的一些特性如下：
+<ul>
+<li>层级队列（Hierarchical Queues）</li>
+<li>容量保证</li>
+<li>安全性：每个队列都有队列的访问权限控制（ACL）</li>
+<li>弹性： 空闲资源可以额外分配给任何需要的队列</li>
+<li>多租户</li>
+<li>基于资源的调度（resouce-based scheduling):
+对资源敏感的应用程序，可以有效地控制资源情况</li>
+<li>支持用户（组）到queue的映射：基于用户组提交作业到对应queue。</li>
+<li>运营支持：支持运行时配置队列的容量，ACL等。也可以在运行时停止queue阻止进一步往queue提交作业。</li>
+</ul></li>
+<li>Fair
+Scheduler：公平调度FAIR，该算法的思想是尽可能地公平调度，即已分配资源量少的优先级高。也就是说，在考虑如何分配资源时，调度器尽可能使得每个应用程序都能够得到大致相当的资源。默认情况下，公平性只通过内存来衡量，但是可以配置成内存和CPU。
+这种策略使得运行时间短的应用能够尽快结束，而不至于在等待资源时被饿死。另外，也可以为应用程序配置优先级，优先级用于决定资源使用量的占比。</li>
+</ol>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<p><a
+target="_blank" rel="noopener" href="https://www.ibm.com/developerworks/cn/opensource/os-cn-hadoop-yarn/">Hadoop
+新MapReduce 框架Yarn 详解</a> <a
+target="_blank" rel="noopener" href="http://blog.csdn.net/bingduanlbd/article/details/51880019">理解Hadoop
+YARN架构</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+              <a href="/tags/yarn/" rel="tag"># yarn</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2017/04/17/2017-04-17-Hadoop%E4%B9%8BMapReduce%E5%8E%9F%E7%90%86/" rel="prev" title="Hadoop之MapReduce原理">
+                  <i class="fa fa-chevron-left"></i> Hadoop之MapReduce原理
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2017/12/03/2017-12-03-%E7%BA%B5%E8%A1%A8%E3%80%81%E6%A8%AA%E8%A1%A8%E4%BA%92%E8%BD%AC/" rel="next" title="纵表、横表互转">
+                  纵表、横表互转 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

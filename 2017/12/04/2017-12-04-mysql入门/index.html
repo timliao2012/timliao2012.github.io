@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="本文记录mysql的一些常用命令。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql入门">
+<meta property="og:url" content="https://timliao2012.github.io/2017/12/04/2017-12-04-mysql%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="本文记录mysql的一些常用命令。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-12-04T14:52:03.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.319Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="sql">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2017/12/04/2017-12-04-mysql%E5%85%A5%E9%97%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2017/12/04/2017-12-04-mysql%E5%85%A5%E9%97%A8/","path":"2017/12/04/2017-12-04-mysql入门/","title":"mysql入门"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>mysql入门 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2017/12/04/2017-12-04-mysql%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mysql入门
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-12-04 22:52:03" itemprop="dateCreated datePublished" datetime="2017-12-04T22:52:03+08:00">2017-12-04</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/sql/" itemprop="url" rel="index"><span itemprop="name">sql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文记录mysql的一些常用命令。</p>
+<span id="more"></span>
+<ol type="1">
+<li><p>启动与停止mysql</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net <span class="keyword">start</span> mysql</span><br><span class="line">net stop mysql</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建一个名称为mydb1的数据库</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database mydb1;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>显示所有数据库</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> databases;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建一个使用utf-8字符集的mydb2数据库。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database mydb2 <span class="type">character</span> <span class="keyword">set</span> utf8;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建一个使用utf-8字符集，并带校对规则的mydb3数据库</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database mydb3 <span class="type">character</span> <span class="keyword">set</span> utf8 <span class="keyword">collate</span> utf8_general_ci;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查看前面创建的mydb2数据库的定义信息</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">create</span> database mydb2;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>删除前面创建的mydb1数据库</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> database mydb1;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查看服务器中的数据库，并把mydb2库的字符集修改为gb2312;</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> database mydb2 <span class="type">character</span> <span class="keyword">set</span> gb2312;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>备份mydb3库中的数据，并恢复</p>
+<p>备份（退到window命令行窗口）：</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump <span class="operator">-</span>u root <span class="operator">-</span>p mydb3<span class="operator">&gt;</span>c:\test.sql</span><br></pre></td></tr></table></figure></p>
+<p>恢复：</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database mydb3;</span><br><span class="line">use mydb3;</span><br><span class="line">source c:\test.sql</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建一个员工表</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> employee</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span>,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">20</span>),</span><br><span class="line">    sex <span class="type">varchar</span>(<span class="number">4</span>),</span><br><span class="line">    birthday <span class="type">date</span>,</span><br><span class="line">    entry_date <span class="type">date</span>,</span><br><span class="line">    job <span class="type">varchar</span>(<span class="number">100</span>),</span><br><span class="line">    salary <span class="keyword">double</span>,</span><br><span class="line">    resume text</span><br><span class="line">)<span class="type">character</span> <span class="keyword">set</span> utf8 <span class="keyword">collate</span> utf8_general_ci;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>在上面员工表的基本上增加一个image列。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> employee <span class="keyword">add</span> image <span class="type">blob</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查看表</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">desc</span> employee;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>修改job列，使其长度为60。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> employee modify job <span class="type">varchar</span>(<span class="number">60</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>删除sex列</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> employee <span class="keyword">drop</span> sex;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>表名改为user</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rename <span class="keyword">table</span> employee <span class="keyword">to</span> <span class="keyword">user</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>修改表的字符集为utf-8</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">user</span> <span class="type">character</span> <span class="keyword">set</span> utf8;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查看表的字符集</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">user</span>;(表的创建语句)</span><br></pre></td></tr></table></figure></p></li>
+<li><p>列名name修改为username</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">user</span> change <span class="keyword">column</span> name username <span class="type">varchar</span>(<span class="number">20</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>使用insert语句向表中插入三个员工的信息。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rename <span class="keyword">table</span> <span class="keyword">user</span> <span class="keyword">to</span> employee;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> employee(id,username,birthday,entry_date,job,salary,resume) <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">&#x27;aaa&#x27;</span>,<span class="string">&#x27;1980-09-09&#x27;</span>,<span class="string">&#x27;1980-09-09&#x27;</span>,<span class="string">&#x27;bbb&#x27;</span>,<span class="number">90</span>,<span class="string">&#x27;aaaa&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> employee(id,username,birthday,entry_date,job,salary,resume) <span class="keyword">values</span>(<span class="number">2</span>,<span class="string">&#x27;bbb&#x27;</span>,<span class="string">&#x27;1980-09-09&#x27;</span>,<span class="string">&#x27;1980-09-09&#x27;</span>,<span class="string">&#x27;bbb&#x27;</span>,<span class="number">90</span>,<span class="string">&#x27;aaaa&#x27;</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>插入中文数据</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> employee(id,username) <span class="keyword">values</span>(<span class="number">2</span>,<span class="string">&#x27;小李子&#x27;</span>);</span><br><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;chara%&#x27;</span>;</span><br><span class="line"><span class="keyword">set</span> character_set_cilent<span class="operator">=</span>gb2312;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> employee(id,username) <span class="keyword">values</span>(<span class="number">2</span>,<span class="string">&#x27;小李子&#x27;</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询时如果发生乱码：</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> character_set_results<span class="operator">=</span>gb2312;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> employee;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>将所有员工薪水修改为5000元。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update employee <span class="keyword">set</span> salary<span class="operator">=</span><span class="number">5000</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>将姓名为’aaa’的员工薪水修改为3000元。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update employee <span class="keyword">set</span> salary<span class="operator">=</span><span class="number">3000</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;aaa&#x27;</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>将姓名为’aaa’的员工薪水修改为4000元,job改为ccc。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update employee <span class="keyword">set</span> salary<span class="operator">=</span><span class="number">4000</span>,job<span class="operator">=</span><span class="string">&#x27;ccc&#x27;</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;aaa&#x27;</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>将aaa的薪水在原有基础上增加1000元。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update employee <span class="keyword">set</span> salary<span class="operator">=</span>salary<span class="operator">+</span><span class="number">1000</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;aaa&#x27;</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>删除表中名称为’zs’的记录</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> employee <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;aaa&#x27;</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>删除表中所有记录。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> employee;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>使用truncate删除表中记录</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">truncate</span> <span class="keyword">table</span> employee</span><br></pre></td></tr></table></figure></p></li>
+<li><p>执行sql脚本</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source c:\student.sql</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询表中所有学生的信息。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询表中所有学生的姓名和对应的英语成绩。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name,english <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>过滤表中重复数据。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">distinct</span> english <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>在所有学生总分上加10分特长分。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name,(english<span class="operator">+</span>chinese<span class="operator">+</span>math)<span class="operator">+</span><span class="number">10</span> <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>使用别名表示学生分数。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name <span class="keyword">as</span> 姓名,(english<span class="operator">+</span>chinese<span class="operator">+</span>math)<span class="operator">+</span><span class="number">10</span> <span class="keyword">as</span> 总分 <span class="keyword">from</span> student;</span><br><span class="line"><span class="keyword">select</span> name 姓名,(english<span class="operator">+</span>chinese<span class="operator">+</span>math)<span class="operator">+</span><span class="number">10</span> 总分 <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询姓名为wu的学生成绩</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">where</span> name<span class="operator">=</span><span class="string">&#x27;王五&#x27;</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询英语成绩大于90分的同学</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> student <span class="keyword">where</span> english<span class="operator">&gt;</span><span class="number">90</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询总分大于200分的所有同学</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> student <span class="keyword">where</span> (english<span class="operator">+</span>chinese<span class="operator">+</span>math)<span class="operator">&gt;</span><span class="number">200</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询英语分数在 80－90之间的同学</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> student <span class="keyword">where</span> english<span class="operator">&gt;</span><span class="number">80</span> <span class="keyword">and</span> english<span class="operator">&lt;</span><span class="number">90</span>;</span><br><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> student <span class="keyword">where</span> english <span class="keyword">between</span> <span class="number">80</span> <span class="keyword">and</span> <span class="number">90</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询数学分数为89,90,91的同学</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">where</span> math<span class="operator">=</span><span class="number">80</span> <span class="keyword">or</span> math<span class="operator">=</span><span class="number">90</span> <span class="keyword">or</span> math<span class="operator">=</span><span class="number">91</span>;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">where</span> math <span class="keyword">in</span>(<span class="number">80</span>,<span class="number">90</span>,<span class="number">91</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询所有姓李的学生成绩。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">where</span> name <span class="keyword">like</span> <span class="string">&#x27;李%&#x27;</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询数学分&gt;80，语文分&gt;80的同学。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> student <span class="keyword">where</span> math<span class="operator">&gt;</span><span class="number">80</span> <span class="keyword">and</span> chinese<span class="operator">&gt;</span><span class="number">80</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>对数学成绩排序后输出</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">order</span> <span class="keyword">by</span> math;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>对总分排序后输出，然后再按从高到低的顺序输出</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">order</span> <span class="keyword">by</span> (math<span class="operator">+</span>english<span class="operator">+</span>chinese) <span class="keyword">desc</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>对姓李的学生成绩排序输出</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student <span class="keyword">where</span> name <span class="keyword">like</span> <span class="string">&#x27;李%&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> (math<span class="operator">+</span>english<span class="operator">+</span>chinese);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计一个班级共有多少学生？</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计数学成绩大于90的学生有多少个？</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> student <span class="keyword">where</span> math<span class="operator">&gt;</span><span class="number">90</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计总分大于250的人数有多少？</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> student <span class="keyword">where</span> (math<span class="operator">+</span>english<span class="operator">+</span>chinese)<span class="operator">&gt;</span><span class="number">250</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计一个班级数学总成绩？</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(math) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计一个班级语文、英语、数学各科的总成绩</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(chinese),<span class="built_in">sum</span>(english),<span class="built_in">sum</span>(math) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计一个班级语文、英语、数学的成绩总和</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(chinese<span class="operator">+</span>math<span class="operator">+</span>english) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>统计一个班级语文成绩平均分</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(chinese)<span class="operator">/</span><span class="built_in">count</span>(chinese) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>求一个班级数学平均分？</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">avg</span>(math) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>求一个班级总分平均分</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">avg</span>(math<span class="operator">+</span>english<span class="operator">+</span>chinese) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>求班级最高分和最低分</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">max</span>(math<span class="operator">+</span>english<span class="operator">+</span>chinese),<span class="built_in">min</span>(math<span class="operator">+</span>english<span class="operator">+</span>chinese) <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>第6种形式的select:</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> orders(</span><br><span class="line">    id <span class="type">int</span>,</span><br><span class="line">    product <span class="type">varchar</span>(<span class="number">20</span>),</span><br><span class="line">    price <span class="type">float</span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> orders(id,product,price) <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">&#x27;电视&#x27;</span>,<span class="number">900</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> orders(id,product,price) <span class="keyword">values</span>(<span class="number">2</span>,<span class="string">&#x27;洗衣机&#x27;</span>,<span class="number">100</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> orders(id,product,price) <span class="keyword">values</span>(<span class="number">3</span>,<span class="string">&#x27;洗衣粉&#x27;</span>,<span class="number">90</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> orders(id,product,price) <span class="keyword">values</span>(<span class="number">4</span>,<span class="string">&#x27;桔子&#x27;</span>,<span class="number">9</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> orders(id,product,price) <span class="keyword">values</span>(<span class="number">5</span>,<span class="string">&#x27;洗衣粉&#x27;</span>,<span class="number">90</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>对订单表中商品归类后，显示每一类商品的总价</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> product,<span class="built_in">sum</span>(price) <span class="keyword">from</span> orders <span class="keyword">group</span> <span class="keyword">by</span> product;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查询购买了几类商品，并且每类总价大于100的商品</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> product <span class="keyword">from</span> orders <span class="keyword">group</span> <span class="keyword">by</span> product <span class="keyword">where</span> <span class="built_in">sum</span>(price)<span class="operator">&gt;</span><span class="number">100</span>;×</span><br><span class="line"><span class="keyword">select</span> product <span class="keyword">from</span> orders <span class="keyword">group</span> <span class="keyword">by</span> product <span class="keyword">having</span> <span class="built_in">sum</span>(price)<span class="operator">&gt;</span><span class="number">100</span>;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>主键约束</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">	<span class="keyword">create</span> <span class="keyword">table</span> test1</span><br><span class="line">	(</span><br><span class="line">	    id <span class="type">int</span> <span class="keyword">primary</span> key,</span><br><span class="line">	    name <span class="type">varchar</span>(<span class="number">20</span>)</span><br><span class="line">	);</span><br><span class="line">	</span><br><span class="line"></span><br><span class="line"><span class="number">1.</span> 主键自动增长：</span><br><span class="line"></span><br><span class="line">	```<span class="keyword">sql</span></span><br><span class="line">	<span class="keyword">create</span> <span class="keyword">table</span> test2</span><br><span class="line">	(</span><br><span class="line">	    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">	    name <span class="type">varchar</span>(<span class="number">20</span>)</span><br><span class="line">	 );</span><br></pre></td></tr></table></figure></p></li>
+<li><p>唯一约束和非空约束</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">user</span></span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    username <span class="type">varchar</span>(<span class="number">40</span>) <span class="keyword">not</span> <span class="keyword">null</span> <span class="keyword">unique</span>,</span><br><span class="line">    password <span class="type">varchar</span>(<span class="number">40</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    email <span class="type">varchar</span>(<span class="number">100</span>) <span class="keyword">not</span> <span class="keyword">null</span> <span class="keyword">unique</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>外键约束</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> male</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">40</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> female</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">40</span>),</span><br><span class="line">    male_id <span class="type">int</span>,</span><br><span class="line">    <span class="keyword">constraint</span> male_id_FK <span class="keyword">foreign</span> key(male_id) <span class="keyword">references</span> male(id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建部门表和员工表(一对多或多对一)</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> department</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> employee</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">100</span>),</span><br><span class="line">    salary <span class="keyword">double</span>,</span><br><span class="line">    department_id <span class="type">int</span>,</span><br><span class="line">    <span class="keyword">constraint</span> department_id_FK <span class="keyword">foreign</span> key(department_id)<span class="keyword">references</span> department(id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建学生、老师表（多对多）</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> teacher</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">100</span>),</span><br><span class="line">    salary <span class="keyword">double</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> student</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> teacher_student</span><br><span class="line">(</span><br><span class="line">    teacher_id <span class="type">int</span>,</span><br><span class="line">    student_id <span class="type">int</span>,</span><br><span class="line">    <span class="keyword">primary</span> key(teacher_id,student_id),</span><br><span class="line">    <span class="keyword">constraint</span> teacher_id_FK <span class="keyword">foreign</span> key(teacher_id) <span class="keyword">references</span> teacher(id),</span><br><span class="line">    <span class="keyword">constraint</span> student_id_FK <span class="keyword">foreign</span> key(student_id) <span class="keyword">references</span> student(id)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> teacher(name,salary) <span class="keyword">values</span>(<span class="string">&#x27;老王&#x27;</span>,<span class="number">1000</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> teacher(name,salary) <span class="keyword">values</span>(<span class="string">&#x27;老李&#x27;</span>,<span class="number">1000</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> student(name) <span class="keyword">values</span>(<span class="string">&#x27;aaa&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> student(name) <span class="keyword">values</span>(<span class="string">&#x27;bbb&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> student(name) <span class="keyword">values</span>(<span class="string">&#x27;ccc&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> teacher_student(teacher_id,student_id) <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> teacher_student(teacher_id,student_id) <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">2</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> teacher_student(teacher_id,student_id) <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">3</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> teacher_student(teacher_id,student_id) <span class="keyword">values</span>(<span class="number">2</span>,<span class="number">1</span>);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>已知老师的id为1，查询出1号老师所有的学生</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> s.<span class="operator">*</span> <span class="keyword">from</span> teacher_student t_s,student s <span class="keyword">where</span> teacher_id<span class="operator">=</span><span class="number">1</span> <span class="keyword">and</span> t_s.student_id<span class="operator">=</span>s.id;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>1号学生有几个老师</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> teacher.<span class="operator">*</span> <span class="keyword">from</span> teacher_student,teacher <span class="keyword">where</span> student_id<span class="operator">=</span><span class="number">1</span> <span class="keyword">and</span> teacher_student.teacher_id<span class="operator">=</span>teacher.id;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>创建人、身份证表（一对一）</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> person</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key auto_increment,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">30</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> idcard</span><br><span class="line">(</span><br><span class="line">    id <span class="type">int</span> <span class="keyword">primary</span> key,</span><br><span class="line">    num <span class="type">varchar</span>(<span class="number">30</span>) <span class="keyword">not</span> <span class="keyword">null</span> <span class="keyword">unique</span>,</span><br><span class="line">    <span class="keyword">constraint</span> person_id_FK <span class="keyword">foreign</span> key(id) <span class="keyword">references</span> person(id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p></li>
+<li><p>数据分页</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> news limits <span class="number">0</span>,<span class="number">20</span>;第<span class="number">0</span>个位置取<span class="number">20</span>条</span><br></pre></td></tr></table></figure></p></li>
+<li><p>当数据库是自动生成主键时，可以使用如下的语句：</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">st <span class="operator">=</span> con.prepareStatement(<span class="keyword">sql</span>,Statement.RETURN_GENERATED_KEYS);</span><br><span class="line">st.executeUpdate();</span><br><span class="line">rs <span class="operator">=</span> st.getGeneratedKeys();</span><br></pre></td></tr></table></figure></p></li>
+<li><p>事物：逻辑上的一组操作，要么全部成功，要么全部都不成功。</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">	<span class="keyword">start</span> transaction 开启事物</span><br><span class="line">	<span class="keyword">Rollback</span> 回滚事物</span><br><span class="line">	<span class="keyword">Commit</span>提交事物</span><br><span class="line">	</span><br><span class="line"></span><br><span class="line"><span class="number">1.</span> JDBC控制事物语句</span><br><span class="line"></span><br><span class="line">	```<span class="keyword">sql</span></span><br><span class="line">	conn.setAutoCommit(<span class="literal">false</span>);</span><br><span class="line">	conn.commit();</span><br><span class="line">	conn.rollback();</span><br></pre></td></tr></table></figure></p></li>
+<li><p>事物设置回滚点</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sp <span class="operator">=</span> conn.setSavepoint();</span><br><span class="line">conn.rollback(sp);</span><br><span class="line">conn.commit(); 回滚了也要提交事物</span><br></pre></td></tr></table></figure></p></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/sql/" rel="tag"># sql</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2017/12/03/2017-12-03-%E7%BA%B5%E8%A1%A8%E3%80%81%E6%A8%AA%E8%A1%A8%E4%BA%92%E8%BD%AC/" rel="prev" title="纵表、横表互转">
+                  <i class="fa fa-chevron-left"></i> 纵表、横表互转
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2017/12/05/2017-12-05-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95/" rel="next" title="数据库索引">
+                  数据库索引 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

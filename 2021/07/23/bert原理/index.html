@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="BERT（Bidirectional Encoder Representations from Transformers）是一种预训练模型，旨在通过考虑所有层中的双侧上下文信息来得到深度的双向表示。该表示连接上一层输出层后，仅需微调训练就可以在很多 NLP 任务中取得惊人的效果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="bert原理">
+<meta property="og:url" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="BERT（Bidirectional Encoder Representations from Transformers）是一种预训练模型，旨在通过考虑所有层中的双侧上下文信息来得到深度的双向表示。该表示连接上一层输出层后，仅需微调训练就可以在很多 NLP 任务中取得惊人的效果。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/bert_input.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/token_embedding.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/segment_embedding.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/bert_architecture.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/self_attention_1.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/self_attention_2.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/self_attention_3.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/self_attention_4.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/self_attention_matrix1.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/self_attention_matrix2.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/multi_headed_attention1.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/multi_headed_attention2.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/multi_headed_attention3.jpg">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/skip_connect.jpg">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/layer_normalization.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/mask_lm.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/next_sentence_prediction.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/bert_case1.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/bert_case2.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/bert_case3.png">
+<meta property="article:published_time" content="2021-07-23T06:13:21.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.347Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="bert">
+<meta property="article:tag" content="segment embedding">
+<meta property="article:tag" content="position embedding">
+<meta property="article:tag" content="self attention">
+<meta property="article:tag" content="残差连接">
+<meta property="article:tag" content="layer normalization">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/bert_input.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/","path":"2021/07/23/bert原理/","title":"bert原理"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>bert原理 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#bert%E7%BB%93%E6%9E%84"><span class="nav-text">Bert结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bert%E7%9A%84%E8%BE%93%E5%85%A5"><span class="nav-text">Bert的输入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#token-embedding"><span class="nav-text">Token embedding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#segment-embedding"><span class="nav-text">Segment embedding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#position-embeddings"><span class="nav-text">Position Embeddings</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">网络结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#multi-headed-attention"><span class="nav-text">Multi-Headed Attention</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#self-attention"><span class="nav-text">Self Attention</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#multi-headed-attention-1"><span class="nav-text">Multi-Headed Attention</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#add-norm"><span class="nav-text">Add &amp; Norm</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#add"><span class="nav-text">Add</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#layer-normalization"><span class="nav-text">Layer Normalization</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#feed-forword-layer"><span class="nav-text">Feed Forword Layer</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="nav-text">模型训练</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E4%BB%BB%E5%8A%A1"><span class="nav-text">训练任务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#masked-language-model"><span class="nav-text">Masked language Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#next-sentence-prediction"><span class="nav-text">Next Sentence Prediction</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fine-tuning"><span class="nav-text">Fine Tuning</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%A5%E5%AD%90%E6%83%85%E6%84%9F%E5%88%86%E7%B1%BB"><span class="nav-text">句子情感分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E7%BF%BB%E8%AF%91"><span class="nav-text">机器翻译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E4%B9%89%E5%8F%A5%E5%88%A4%E6%96%AD"><span class="nav-text">同义句判断</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/07/23/bert%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          bert原理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-23 14:13:21" itemprop="dateCreated datePublished" datetime="2021-07-23T14:13:21+08:00">2021-07-23</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/dl/" itemprop="url" rel="index"><span itemprop="name">dl</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>BERT（<strong>B</strong>idirectional <strong>E</strong>ncoder
+<strong>R</strong>epresentations from
+<strong>T</strong>ransformers）是一种<strong>预训练模型</strong>，旨在通过考虑所有层中的<strong>双侧上下文</strong>信息来得到<strong>深度的双向表示</strong>。该表示连接上一层输出层后，仅需微调训练就可以在很多
+NLP 任务中取得惊人的效果。</p>
+<span id="more"></span>
+<h1 id="bert结构">Bert结构</h1>
+<h2 id="bert的输入">Bert的输入</h2>
+<p>在BERT中，输入的向量是由三种不同的embedding求和而成，分别是：</p>
+<ol type="1">
+<li>token embedding：单词本身的向量表示</li>
+<li>segment embedding：用于区分两个句子的向量表示</li>
+<li>position embedding：单词位置信息的编码表示</li>
+</ol>
+<figure>
+<img src="bert_input.png" alt="bert input" />
+<figcaption aria-hidden="true">bert input</figcaption>
+</figure>
+<h3 id="token-embedding">Token embedding</h3>
+<p>token embedding
+层是要将各个词转换成固定维度的向量。在BERT中，每个词会被转换成768维的向量表示。</p>
+<figure>
+<img src="token_embedding.png" alt="token embedding" />
+<figcaption aria-hidden="true">token embedding</figcaption>
+</figure>
+<p>输入文本在送入token embeddings
+层之前要先进行tokenization处理。此外，两个特殊的token会被插入到tokenization的结果的开头
+([CLS])和结尾 ([SEP]) 。它们视为后面的分类任务和划分句子对服务的。</p>
+<p>Token Embeddings 层会将每一个wordpiece
+token转换成768维的向量。这样，例子中的6个token就被转换成了一个(6, 768)
+的矩阵或者是(1, 6, 768)的张量（如果考虑batch_size的话）。</p>
+<h3 id="segment-embedding">Segment embedding</h3>
+<p>BERT
+能够处理对输入句子对的分类任务。这类任务就像判断两个文本是否是语义相似的。句子对中的两个句子被简单的拼接在一起后送入到模型中。那BERT如何去区分一个句子对中的两个句子呢？答案就是segment
+embeddings.</p>
+<figure>
+<img src="segment_embedding.png" alt="segment embedding" />
+<figcaption aria-hidden="true">segment embedding</figcaption>
+</figure>
+<p>Segment Embeddings
+层只有两种向量表示。前一个向量是把0赋给第一个句子中的各个token,
+后一个向量是把1赋给第二个句子中的各个token。如果输入仅仅只有一个句子，那么它的segment
+embedding就是全0。</p>
+<h3 id="position-embeddings">Position Embeddings</h3>
+<p>Transformers无法编码输入的序列的顺序性，加入position
+embeddings会让BERT理解输入句子的位置信息。</p>
+<p><strong>如何设计positional embedding？</strong></p>
+<ol type="1">
+<li>为每个时间步（单词在句子中的位置）输出唯一的编码</li>
+<li>即便句子长度不一，句子中两个时间步之间的距离应该是“恒定”的</li>
+<li>模型可以轻易泛化到更长的句子上</li>
+<li>PE必须是确定的</li>
+</ol>
+<p>论文中采用的positional
+embedding：<strong>偶数位置，使用正弦编码，在奇数位置，使用余弦编码</strong>
+<span class="math display">\[
+PE(pos,2i)=sin(\frac{pos}{10000^{2i/d_{model}}})
+\]</span></p>
+<p><span class="math display">\[
+PE(pos,2i+1)=cos(\frac{pos}{10000^{2i/d_{model}}})
+\]</span></p>
+<p>BERT能够处理最长512个token的输入序列。论文作者通过让BERT在各个位置上学习一个向量表示来将序列顺序的信息编码进来。这意味着Position
+Embeddings layer 实际上就是一个大小为 (512, 768)
+的lookup表，表的第一行是代表第一个序列的第一个位置，第二行代表序列的第二个位置，以此类推。因此，如果有这样两个句子“Hello
+world” 和“Hi there”, “Hello” 和“Hi”会由完全相同的position
+embeddings，因为他们都是句子的第一个词。同理，“world”
+和“there”也会有相同的position embedding。</p>
+<h2 id="网络结构">网络结构</h2>
+<p>BERT的主要结构是transformer，一个BERT预训练模型的基础结构是标准transformer结构的encoder部分，一个标准transformer结构如下图所示，其中右边的部分就是BERT中使用的encoder部分。</p>
+<figure>
+<img src="bert_architecture.png" alt="bert architecture" />
+<figcaption aria-hidden="true">bert architecture</figcaption>
+</figure>
+<p>一个transformer的encoder单元由一个multi-head-Attention + Layer
+Normalization + feedforword + Layer Normalization
+叠加产生，BERT的每一层由一个这样的encoder单元构成。在比较大的BERT模型中，有24层encoder，每层中有16个Attention，词向量的维度是1024。在比较小的BERT模型中，有12层encoder，每层有12个Attention，词向量维度是768。在所有情况下，将feed-forward/filter
+的大小设置为 4H（H为词向量的维度），即H = 768时为3072，H =
+1024时为4096。</p>
+<h3 id="multi-headed-attention">Multi-Headed Attention</h3>
+<h4 id="self-attention">Self Attention</h4>
+<ol type="1">
+<li><p><strong>self-attention出现的原因</strong></p>
+<ul>
+<li><p>为了解决RNN、LSTM等常用于处理序列化数据的网络结构无法在GPU中<strong>并行加速计算</strong>的问题</p></li>
+<li><p>由于每个目标词是直接与句子中所有词分别计算相关度(attention)的，所以解决了传统的RNN模型中长距离依赖的问题，通过attention，可以将两个距离较远的词之间的距离拉近为1直接计算词的相关度，而传统的RNN模型中，随着距离的增加，词之间的相关度会被削弱。</p></li>
+</ul></li>
+<li><p><strong>单个self-attention 的计算过程</strong></p>
+<p>self-attention是Transformer用来将其他相关单词的“理解”转换成我们正在处理的单词的一种思路</p>
+<ol type="1">
+<li><p>首先，self-attention会计算出三个新的向量，在论文中，向量的维度是512维，我们把这三个向量分别称为Query、Key、Value，这三个向量是用embedding向量与一个矩阵相乘得到的结果，这个矩阵是随机初始化的，维度为（64，512）注意第二个维度需要和embedding的维度一样，其值在BP的过程中会一直进行更新，得到的这三个向量的维度是64。</p>
+<figure>
+<img src="self_attention_1.png" alt="self attention1" />
+<figcaption aria-hidden="true">self attention1</figcaption>
+</figure></li>
+<li><p>计算self-attention的分数值，该分数值决定了当我们在某个位置encode一个词时，对输入句子的其他部分的关注程度。这个分数值的计算方法是Query与Key做点成，以下图为例，首先我们需要针对Thinking这个词，计算出其他词对于该词的一个分数值，首先是针对于自己本身即q1·k1，然后是针对于第二个词即q1·k2。</p>
+<figure>
+<img src="self_attention_2.png" alt="self attention2" />
+<figcaption aria-hidden="true">self attention2</figcaption>
+</figure></li>
+<li><p>接下来，把点成的结果除以一个常数，这里我们除以8，这个值一般是采用上文提到的矩阵的第一个维度的开方即64的开方8，当然也可以选择其他的值，然后把得到的结果做一个softmax的计算。得到的结果即是每个词对于当前位置的词的相关性大小，当然，当前位置的词相关性肯定会会很大。</p>
+<figure>
+<img src="self_attention_3.png" alt="self attention3" />
+<figcaption aria-hidden="true">self attention3</figcaption>
+</figure></li>
+<li><p>下一步就是把Value和softmax得到的值进行相乘，并相加，得到的结果即是self-attention在当前节点的值。</p>
+<figure>
+<img src="self_attention_4.png" alt="self attention4" />
+<figcaption aria-hidden="true">self attention4</figcaption>
+</figure></li>
+</ol>
+<p>在实际的应用场景，为了提高计算速度，我们采用的是矩阵的方式，直接计算出Query,
+Key, Value的矩阵，然后把embedding的值与三个矩阵直接相乘，把得到的新矩阵
+Q 与 K 相乘，乘以一个常数，做softmax操作，最后乘上 V 矩阵。</p>
+<p><strong>这种通过 query 和 key 的相似性程度来确定 value
+的权重分布的方法被称为scaled dot-product attention。</strong></p>
+<figure>
+<img src="self_attention_matrix1.png" alt="self attention matrix 1" />
+<figcaption aria-hidden="true">self attention matrix 1</figcaption>
+</figure>
+<figure>
+<img src="self_attention_matrix2.png" alt="self attention matrix 2" />
+<figcaption aria-hidden="true">self attention matrix 2</figcaption>
+</figure></li>
+</ol>
+<blockquote>
+<p>self
+attention中Q、K、V都是通过一个线性变换得到，其维度可自定义，但一般定义成<span
+class="math inline">\(embedding\_size \times
+embedding\_size/head\)</span>​</p>
+</blockquote>
+<h4 id="multi-headed-attention-1">Multi-Headed Attention</h4>
+<p>multi-headed
+attention机制理解起来很简单，<strong>就是说不仅仅只初始化一组Q、K、V的矩阵，而是初始化多组，tranformer是使用了8组</strong>，所以最后得到的结果是8个矩阵。</p>
+<figure>
+<img src="multi_headed_attention1.png" alt="multi-headed attention1" />
+<figcaption aria-hidden="true">multi-headed attention1</figcaption>
+</figure>
+<figure>
+<img src="multi_headed_attention2.png" alt="multi-headed attention2" />
+<figcaption aria-hidden="true">multi-headed attention2</figcaption>
+</figure>
+<p>Multi-Head
+Self-Attention<strong>将多个不同单头的</strong>Self-Attention输出<strong>Concat</strong>成一条，然后再经过一个全连接层降维输出，如下图所示，右边的部分即为一个multi-head
+attention的计算过程，其中的h指的是attention的个数，即上面例子中的n。</p>
+<figure>
+<img src="multi_headed_attention3.jpg" alt="multi headed attention" />
+<figcaption aria-hidden="true">multi headed attention</figcaption>
+</figure>
+<blockquote>
+<p>经过concat和全连接层降维后，multi-headed
+attention输出的向量维度与输入的向量维度一致</p>
+</blockquote>
+<h3 id="add-norm">Add &amp; Norm</h3>
+<h4 id="add">Add</h4>
+<p>Add是对得到的<span
+class="math inline">\(X_{Attention}\)</span>以及X做一个相加。 <span
+class="math display">\[
+X_{Attention} = X_{Attention} + X
+\]</span> <img src="skip_connect.jpg" alt="skip connect" /></p>
+<p>Add的目的和ResNet的跳跃连接目的一样，使用<strong>残差</strong>，相当于每次更新时，导数项上加了一个恒等项1，即使原来的导数很小，这时误差仍然可以有效的反向传播，可以<strong>减少梯度消失和梯度爆炸的问题</strong>。</p>
+<h4 id="layer-normalization">Layer Normalization</h4>
+<p><strong>Normalization的目的是将数据送入激活函数之前进行归一化，避免输入数据落在激活函数的饱和区（两端）。</strong></p>
+<p>但是Self-Attention为什么选择Layer Normalization而不是Batch
+Normalization？</p>
+<p><strong>Bach Normalization与Layer Normalization的区别：</strong></p>
+<p>假设我们有10行3列的数据，即我们的batchsize =
+10，每一行数据有三个特征，假设这三个特征是【身高、体重、年龄】。</p>
+<p>那么BN是针对每一列（特征）进行缩放，例如算出【身高】的均值与方差，再对身高这一列的10个数据进行缩放。体重和年龄同理。这是一种<strong>“列缩放”</strong>。</p>
+<p>而layer方向相反，它针对的是每一行进行缩放。即只看一笔数据，算出这笔所有特征的均值与方差再缩放。这是一种<strong>“行缩放”</strong>。</p>
+<p>在NLP领域中，如果我们将一批文本组成一个batch，那么BN的操作方向是，对每句话的<strong>第一个</strong>词进行操作。但语言文本的复杂性是很高的，任何一个词都有可能放在初始位置，且词序可能并不影响我们对句子的理解。而BN是<strong>针对每个位置</strong>进行缩放，这<strong>不符合NLP的规律</strong>。而LN则是针对一句话进行缩放的，且<strong>LN一般用在第三维度</strong>，如[batchsize,
+seq_len,
+dims]中的dims，一般为词向量的维度，或者是RNN的输出维度等等，这一维度各个特征的量纲应该相同。因此也不会遇到上面因为特征的量纲不同而导致的缩放问题。</p>
+<figure>
+<img src="layer_normalization.png" alt="layer normalization" />
+<figcaption aria-hidden="true">layer normalization</figcaption>
+</figure>
+<h3 id="feed-forword-layer">Feed Forword Layer</h3>
+<p>这里就是将Multi-Head
+Attention得到的提炼好的向量再投影到一个更大的空间（论文里将空间放大了4倍）在那个大空间里可以更方便地提取需要的信息（使用Relu激活函数），最后再投影回token向量原来的空间。
+<span class="math display">\[
+FFN(x)=ReLu(xW_1+b_1)W_2+b_2
+\]</span></p>
+<h1 id="模型训练">模型训练</h1>
+<h2 id="训练任务">训练任务</h2>
+<h3 id="masked-language-model">Masked language Model</h3>
+<p>随机掩盖掉一些单词，然后通过上下文预测该单词。BERT中有15%的wordpiece
+token会被随机掩盖，这15%的token中80%用<code>[MASK]</code>这个token来代替，10%用随机的一个词来替换，10%保持这个词不变。这种设计使得模型具有捕捉上下文关系的能力，同时能够有利于token-level
+tasks例如序列标注。</p>
+<figure>
+<img src="mask_lm.png" alt="mask lm" />
+<figcaption aria-hidden="true">mask lm</figcaption>
+</figure>
+<ol type="1">
+<li><p>为什么选中的15%的wordpiece token不能全部
+用<code>[MASK]</code>代替，而要用 10% 的 random token 和 10% 的原
+token？</p>
+<p><code>[MASK]</code>是以一种显式的方式告诉模型『这个词我不告诉你，你自己从上下文里猜』，从而防止信息泄露。如果
+<code>[MASK]</code>以外的部分全部都用原
+token，模型会学到『如果当前词是<code>[MASK]</code>，就根据其他词的信息推断这个词；如果当前词是一个正常的单词，就直接抄输入』。这样一来，在
+finetune
+阶段，所有词都是正常单词，模型就照抄所有词，不提取单词间的依赖关系了。</p>
+<p>以一定的概率填入 random token，就是让模型时刻堤防着，在任意 token
+的位置都需要把当前 token 的信息和上下文推断出的信息相结合。这样一来，在
+finetune
+阶段的正常句子上，模型也会同时提取这两方面的信息，因为它不知道它所看到的『正常单词』到底有没有被动过手脚的。</p></li>
+<li><p>最后怎么利用[MASK] token做的预测？</p>
+<p>最终的损失函数只计算被mask掉的token的，每个句子里
+<code>[MASK]</code>的个数是不定的。实际代码实现是每个句子有一个 maximum
+number of predictions，取所有<code>[MASK]</code>的位置以及一些 PADDING
+位置的向量拿出来做预测（总共凑成 maximum number of predictions
+这么多个预测，是定长的），然后再用掩码把 PADDING
+盖掉，只计算<code>[MASK]</code>部分的损失。</p></li>
+</ol>
+<h3 id="next-sentence-prediction">Next Sentence Prediction</h3>
+<p>选择一些句子对A与B，其中50%的数据B是A的下一条句子，剩余50%的数据B是语料库中随机选择的，学习其中的相关性，添加这样的预训练的目的是目前很多NLP的任务比如QA和NLI都需要理解两个句子之间的关系，从而能让预训练的模型更好的适应这样的任务。</p>
+<figure>
+<img src="next_sentence_prediction.png"
+alt="Next Sentence Prediction" />
+<figcaption aria-hidden="true">Next Sentence Prediction</figcaption>
+</figure>
+<h1 id="fine-tuning">Fine Tuning</h1>
+<h2 id="句子情感分类">句子情感分类</h2>
+<p>如果是做单个句子的情感分类。输入中添加[CLS]，输出在最开始的地方添加一个线性分类器即可。为什么在最开始就可以，因为BERT是基于Transformer，而Transformer是基于self-attention，在每个位置都会得到整个句子的信息，所以不需要放到最后面。</p>
+<figure>
+<img src="bert_case1.png" alt="Bert case 1" />
+<figcaption aria-hidden="true">Bert case 1</figcaption>
+</figure>
+<h2 id="机器翻译">机器翻译</h2>
+<p>做机器翻译时，在每个输出后添加一个线性分类器，输出每个词语对应的翻译。</p>
+<figure>
+<img src="bert_case2.png" alt="Bert case2" />
+<figcaption aria-hidden="true">Bert case2</figcaption>
+</figure>
+<h2 id="同义句判断">同义句判断</h2>
+<p>将相似对拼接一起输入到模型中，最后一层外接一个线性分类器。</p>
+<figure>
+<img src="bert_case3.png" alt="Bert case3" />
+<figcaption aria-hidden="true">Bert case3</figcaption>
+</figure>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<ol type="1">
+<li><p><a
+target="_blank" rel="noopener" href="https://arxiv.org/pdf/1810.04805.pdf">原始论文</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/u011412768/article/details/108015783">BERT原理和结构详解</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://tech.meituan.com/2019/11/14/nlp-bert-practice.html">美团BERT的探索和实践</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/d0main/p/10447853.html">【译】为什么BERT有3个嵌入层，它们都是如何实现的</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/359366717">Transformer 中的
+positional embedding</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/42833949">【模型解读】resnet中的残差连接，你确定真的看懂了？</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="http://www.cxyzjd.com/article/herosunly/94720139">李宏毅
+BERT 学习笔记_herosunly的博客</a></p></li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bert/" rel="tag"># bert</a>
+              <a href="/tags/segment-embedding/" rel="tag"># segment embedding</a>
+              <a href="/tags/position-embedding/" rel="tag"># position embedding</a>
+              <a href="/tags/self-attention/" rel="tag"># self attention</a>
+              <a href="/tags/%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5/" rel="tag"># 残差连接</a>
+              <a href="/tags/layer-normalization/" rel="tag"># layer normalization</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/20/%E5%85%B1%E7%BA%BF%E6%80%A7%E7%89%B9%E5%BE%81/" rel="prev" title="共线性特征">
+                  <i class="fa fa-chevron-left"></i> 共线性特征
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/23/Transformer%E8%AF%A6%E8%A7%A3/" rel="next" title="Transformer详解">
+                  Transformer详解 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

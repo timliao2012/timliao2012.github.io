@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="数据和特征决定了机器学习的上限，而模型和算法只是逼近这个上限而已！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="特征工程">
+<meta property="og:url" content="https://timliao2012.github.io/2021/06/28/%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="数据和特征决定了机器学习的上限，而模型和算法只是逼近这个上限而已！">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-28T07:47:15.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.326Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="特征工程">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/06/28/%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/06/28/%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/","path":"2021/06/28/特征工程/","title":"特征工程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>特征工程 | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%8F%8F%E8%BF%B0"><span class="nav-text">数据描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E5%A4%84%E7%90%86"><span class="nav-text">特征处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-text">数据预处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%BA%E5%A4%B1%E5%80%BC%E5%A4%84%E7%90%86"><span class="nav-text">缺失值处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E5%80%BC%E5%A4%84%E7%90%86"><span class="nav-text">异常值处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E8%BD%AC%E6%8D%A2"><span class="nav-text">特征转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E5%9E%8B%E7%89%B9%E5%BE%81"><span class="nav-text">连续型特征</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E6%95%A3%E5%8C%96%E7%89%B9%E5%BE%81"><span class="nav-text">离散化特征</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9"><span class="nav-text">特征选择</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E6%A3%80%E9%AA%8C"><span class="nav-text">特征检验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E5%8F%98%E9%87%8F"><span class="nav-text">单变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%8F%98%E9%87%8F"><span class="nav-text">多变量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9-1"><span class="nav-text">特征选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#filter%E8%BF%87%E6%BB%A4%E6%B3%95"><span class="nav-text">Filter：过滤法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wrapper%E5%8C%85%E8%A3%85%E6%B3%95"><span class="nav-text">Wrapper：包装法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#embedded%E5%B5%8C%E5%85%A5%E6%B3%95"><span class="nav-text">Embedded：嵌入法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/06/28/%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          特征工程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-06-28 15:47:15" itemprop="dateCreated datePublished" datetime="2021-06-28T15:47:15+08:00">2021-06-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ml/" itemprop="url" rel="index"><span itemprop="name">ml</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>数据和特征决定了机器学习的上限，而模型和算法只是逼近这个上限而已！</p>
+<span id="more"></span>
+<h1 id="数据描述">数据描述</h1>
+<ul>
+<li>统计值：max, min, mean, std等</li>
+<li>集中趋势</li>
+<li>分布形状</li>
+</ul>
+<h1 id="特征处理">特征处理</h1>
+<h2 id="数据预处理">数据预处理</h2>
+<h3 id="缺失值处理">缺失值处理</h3>
+<ol type="1">
+<li>缺失值删除
+<ul>
+<li>删除样本</li>
+<li>删除特征</li>
+</ul></li>
+<li>缺失值填充
+<ul>
+<li>固定值填充，如0，999，-999</li>
+<li>均值填充</li>
+<li>众数填充</li>
+<li>上下数据填充</li>
+<li>插值法填充</li>
+<li>KNN填充</li>
+<li>random forest填充</li>
+<li>不填充：
+LightGBM和XGBoost都能对NaN数据进行学习，不需要处理缺失值</li>
+</ul></li>
+</ol>
+<h3 id="异常值处理">异常值处理</h3>
+<ol type="1">
+<li>基于统计的异常点检测算法
+例如极差，四分位数间距，均差，标准差等，这种方法适合于挖掘单变量的数值型数据。</li>
+<li>基于距离的异常点检测算法
+主要通过距离方法来检测异常点，将数据集中与大多数点之间距离大于某个阈值的点视为异常点，主要使用的距离度量方法有绝对距离(曼哈顿距离)、欧氏距离和马氏距离等方法。</li>
+<li>基于密度的异常点检测算法
+考察当前点周围密度，可以发现局部异常点。</li>
+</ol>
+<h2 id="特征转换">特征转换</h2>
+<h3 id="连续型特征">连续型特征</h3>
+<ol type="1">
+<li><p><strong>函数转换</strong>：有时我们的模型的假设条件是要求自变量或因变量服从某特殊分布（如正太分布），或者说自变量或因变量服从该分布时，模型的表现较好。</p></li>
+<li><p><strong>特征缩放</strong>：某些模型（像岭回归）要求你必须将特征值缩放到相同的范围值内。通过缩放可以避免某些特征比其他特征获得大小非常悬殊的权重值。</p></li>
+<li><p><strong>无量纲化</strong>：无量纲化使不同规格的数据转换到同一规格。</p>
+<ul>
+<li><p><strong>标准化</strong>：</p>
+<ul>
+<li>均值方差法</li>
+<li>z-score标准化</li>
+<li>StandardScaler标准化</li>
+</ul></li>
+<li><p><strong>归一化</strong>：</p>
+<ul>
+<li>最大最小归一化</li>
+<li>对数函数转化（log）</li>
+<li>反余切转化</li>
+</ul></li>
+<li><p><strong>区间缩放法</strong>：区间缩放法的思路有多种，常见的一种为利用两个最值进行缩放。
+<span class="math display">\[
+x^{\prime}=\frac{x-Min}{Max-Min}
+\]</span></p></li>
+</ul></li>
+<li><p><strong>二值化（定量特征）</strong>：特征的二值化处理是将数值型数据输出为布尔类型。其核心在于设定一个阈值，当样本书籍大于该阈值时，输出为1，小于等于该阈值时输出为0。</p></li>
+<li><p><strong>离散化分箱处理</strong>：将数值型属性转换成类别型更有意义，同时将一定范围内的数值划分成确定的块，使算法减少噪声的干扰，避免过拟合。</p>
+<ul>
+<li><p>等值划分</p></li>
+<li><p>等频划分</p></li>
+</ul></li>
+</ol>
+<h3 id="离散化特征">离散化特征</h3>
+<ol type="1">
+<li><p><strong>数值化处理</strong>：将类别属性转换成一个标量，最有效的场景应该就是二分类的情况。这种情况下，并不需要排序，并且你可以将属性的值理解成属于类别1或类别2的概率。
+多分类问题：选取多分类，编码到[0，classnum)。</p>
+<p>该方法局限性较大：</p>
+<ul>
+<li>不适用于建立预测具体数值的模型，比如线性回归，只能用于分类，</li>
+<li>即使用于分类，也有一些模型不适合，</li>
+<li>可能结果的精度不如one-hot编码。</li>
+</ul></li>
+<li><p><strong>哑编码</strong>：</p>
+<ul>
+<li><p>独热编码（one-hot)：数据集中的每个实例，只有一个是1（其他的为0）</p>
+<ul>
+<li>优点：简单，且保证无共线性。</li>
+<li>缺点：太稀（稀疏矩阵）</li>
+</ul></li>
+<li><p>顺序性哑变量：将一个变量的k个值生成k个哑变量，保护了特征的顺序关系。</p>
+<table>
+<thead>
+<tr class="header">
+<th>status</th>
+<th>向量表示</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>bad</td>
+<td>(1,0,0)</td>
+</tr>
+<tr class="even">
+<td>normal</td>
+<td>(1,1,0)</td>
+</tr>
+<tr class="odd">
+<td>good</td>
+<td>(1,1,1)</td>
+</tr>
+</tbody>
+</table></li>
+</ul></li>
+</ol>
+<h1 id="特征选择">特征选择</h1>
+<h2 id="特征检验">特征检验</h2>
+<h3 id="单变量">单变量</h3>
+<ol type="1">
+<li>正态性检验</li>
+<li>显著性分析</li>
+</ol>
+<h3 id="多变量">多变量</h3>
+<ol type="1">
+<li>一致性检验</li>
+<li>多重共线性</li>
+</ol>
+<h2 id="特征选择-1">特征选择</h2>
+<h3 id="filter过滤法">Filter：过滤法</h3>
+<p>按照发散性或者相关性对各个特征进行评分，设定阈值或者待选择阈值的个数，选择特征。过滤式特征选择的评价标准分为四种，即距离度量、信息度量、关联度度量以及一致性度量。</p>
+<p><strong>优点：</strong>算法的通用性强；省去了分类器的训练步骤，算法复杂性低，因而适用于大规模数据集；可以快速去除大量不相关的特征，作为特征的预筛选器非常合适。</p>
+<p><strong>缺点</strong>：由于算法的评价标准独立于特定的学习算法，所选的特征子集在分类准确率方面通常低于Wrapper方法。</p>
+<ol type="1">
+<li><p><strong>方差选择法</strong></p>
+<p>计算各个特征的方差，选择方差大于阈值的特征 。</p></li>
+<li><p><strong>相关系数法</strong></p>
+<p>计算各个特征对目标值的相关系数以及相关系数的P值。 <span
+class="math display">\[
+\rho_{\boldsymbol{x},\boldsymbol{y}}=\frac{\text{cov}(\boldsymbol{x},\boldsymbol{y})}{\sigma_\boldsymbol{x}\sigma_\boldsymbol{y}}=\frac{E[(\boldsymbol{x}-\mu_\boldsymbol{x},\boldsymbol{y}-\mu_\boldsymbol{y})]}{\sigma_\boldsymbol{x}\sigma_\boldsymbol{y}}
+\]</span> 使用条件：</p>
+<ol type="1">
+<li>两个变量间有线性关系；</li>
+<li>变量是连续变量；</li>
+<li>变量均符合正态分布，且二元分布也符合正态分布；</li>
+<li>两变量独立；</li>
+<li>两变量的方差不为 0；</li>
+</ol></li>
+<li><p><strong>互信息法</strong></p>
+<p>互信息（mutual
+information）是用来评价<strong>一个事件的出现对于另一个事件的出现所贡献的信息量。</strong>
+<span class="math display">\[
+I(X;Y) = \sum\limits_{y \in \mathcal{Y}}\sum\limits_{x \in \mathcal{X}}
+p(x,y) \,\text{log}\left(\frac{p(x,y)}{p(x)p(y)}\right)
+\]</span> 而如果 𝑥 和 𝑦 是相互独立的随机变量，则 𝑝(𝑥,𝑦)=𝑝(𝑥)𝑝(𝑦)
+，那么上式为 0。因此若
+𝐼(𝑋;𝑌)越大，则表示两个变量相关性越大，于是就可以用互信息来筛选特征。</p></li>
+<li><p><strong>卡方检验（Chi-Square）</strong></p>
+<p>卡方检验恰好可以进行<strong>独立性检验</strong>，所以其适用于特征选择。</p>
+<blockquote>
+<p>卡方分布，其定义如下：</p>
+<p>设随机变量<span class="math inline">\(x_1, x_2 ... x_n \,,\quad
+\text{i.i.d} \sim N(0,1)\)</span>，即独立同分布于标准正态分布，那么这
+𝑛个随机变量的平方和： <span class="math display">\[
+X = \sum\limits_{i=1}^n x_i^2
+\]</span> 构成一个新的随机变量，其服从自由度为 𝑛 的卡方分布 ( 𝜒2 分布)
+，记为 <span class="math inline">\(X \sim \chi^2_n\)</span>。</p>
+</blockquote>
+<p>计算检验统计量 𝜒2 ( 𝜒2χ表示卡方值) ，𝜒2
+越大，表示观测值和理论值相差越大，当 𝜒2
+大于某一个临界值时，就能获得统计显著性的结论。 <span
+class="math display">\[
+\chi^2 = \sum\frac{(观测频数 - 期望频数)^2}{期望频数}= \sum_{i=1}^{r}
+\sum_{j=1}^{c} {(O_{i,j} - E_{i,j})^2 \over E_{i,j}}
+\]</span></p></li>
+</ol>
+<h3 id="wrapper包装法">Wrapper：包装法</h3>
+<p>根据目标函数（通常是预测效果评分），每次选择若干特征，或者排除若干特征。</p>
+<h3 id="embedded嵌入法">Embedded：嵌入法</h3>
+<p>先使用某些机器学习的算法和模型进行训练，得到各个特征的权值系数，根据系数从大到小选择特征。类似于Filter方法，但是是通过训练来确定特征的优劣。</p>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<ol type="1">
+<li><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/111296130">深度了解特征工程</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://guyuecanhui.github.io/2019/07/20/feature-selection-pearson/">常用的特征选择方法之
+Pearson 相关系数</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/massquantity/p/10486904.html">[特征选择：
+卡方检验、F
+检验和互信息](https://www.cnblogs.com/massquantity/p/10486904.html)</a></li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/" rel="tag"># 特征工程</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/28/%E6%9C%80%E5%A4%A7%E4%BC%BC%E7%84%B6%E4%BC%B0%E8%AE%A1%EF%BC%88MLE%EF%BC%89-%E6%9C%80%E5%A4%A7%E5%90%8E%E9%AA%8C%E6%A6%82%E7%8E%87%E4%BC%B0%E8%AE%A1%EF%BC%88MAP%EF%BC%89/" rel="prev" title="最大似然估计（MLE） & 最大后验概率估计（MAP）">
+                  <i class="fa fa-chevron-left"></i> 最大似然估计（MLE） & 最大后验概率估计（MAP）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/28/%E7%A4%BE%E5%8C%BA%E5%8F%91%E7%8E%B0-Fast-Unfolding%E7%AE%97%E6%B3%95/" rel="next" title="社区发现-Fast Unfolding算法">
+                  社区发现-Fast Unfolding算法 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

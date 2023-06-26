@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"timliao2012.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="Elasticsearch（简称ES）是一个分布式、可扩展、实时的搜索与数据分析引擎。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elastic Search">
+<meta property="og:url" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/index.html">
+<meta property="og:site_name" content="huangyedi2012">
+<meta property="og:description" content="Elasticsearch（简称ES）是一个分布式、可扩展、实时的搜索与数据分析引擎。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/InvertIndex.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/index_segment.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/es_cluster.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/cluster_role.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/document_operation.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/document_query.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/document_update.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/query.png">
+<meta property="og:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/fetch.png">
+<meta property="article:published_time" content="2021-07-02T09:43:13.000Z">
+<meta property="article:modified_time" content="2023-06-26T11:59:24.340Z">
+<meta property="article:author" content="huangyedi2012">
+<meta property="article:tag" content="todo">
+<meta property="article:tag" content="es">
+<meta property="article:tag" content="倒排索引">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://timliao2012.github.io/2021/07/02/Elastic-Search/InvertIndex.png">
+
+
+<link rel="canonical" href="https://timliao2012.github.io/2021/07/02/Elastic-Search/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://timliao2012.github.io/2021/07/02/Elastic-Search/","path":"2021/07/02/Elastic-Search/","title":"Elastic Search"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Elastic Search | huangyedi2012</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">huangyedi2012</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">传统数据库的问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E5%8E%9F%E7%90%86"><span class="nav-text">搜索引擎原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95"><span class="nav-text">倒排索引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#elasticsearc%E7%B4%A2%E5%BC%95"><span class="nav-text">ElasticSearc索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E4%B8%8D%E5%8F%98%E6%80%A7"><span class="nav-text">索引的不变性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E6%9B%B4%E6%96%B0%E7%B4%A2%E5%BC%95"><span class="nav-text">动态更新索引</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%87%E6%A1%A3%E7%9A%84%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%88%A0%E9%99%A4"><span class="nav-text">文档的更新与删除</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A0%E9%99%A4"><span class="nav-text">删除</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0"><span class="nav-text">更新</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#elasticsearch%E9%9B%86%E7%BE%A4%E5%8E%9F%E7%90%86"><span class="nav-text">ElasticSearch集群原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%86%E7%BE%A4%E8%8A%82%E7%82%B9%E8%A7%92%E8%89%B2"><span class="nav-text">集群节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1%E6%9C%BA%E5%88%B6"><span class="nav-text">路由机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B0%E5%BB%BA%E7%B4%A2%E5%BC%95%E5%88%A0%E9%99%A4%E6%96%87%E6%A1%A3"><span class="nav-text">新建、索引、删除文档</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%96%87%E6%A1%A3"><span class="nav-text">查询文档</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E6%96%87%E6%A1%A3"><span class="nav-text">更新文档</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E6%A3%80%E7%B4%A2"><span class="nav-text">分布式检索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E9%98%B6%E6%AE%B5"><span class="nav-text">查询阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%96%E5%9B%9E%E9%98%B6%E6%AE%B5"><span class="nav-text">取回阶段</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E7%89%87%E7%9A%84%E8%AE%BE%E5%AE%9A"><span class="nav-text">分片的设定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%BA%A6%E8%AF%84%E5%88%86"><span class="nav-text">相关度评分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%83%E5%B0%94%E6%A8%A1%E5%9E%8B"><span class="nav-text">布尔模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%8D%E9%A2%91%E9%80%86%E5%90%91%E6%96%87%E6%A1%A3%E9%A2%91%E7%8E%87tfidf"><span class="nav-text">词频&#x2F;逆向文档频率（TF&#x2F;IDF）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%8D%E9%A2%91"><span class="nav-text">词频</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%86%E5%90%91%E6%96%87%E6%A1%A3%E9%A2%91%E7%8E%87"><span class="nav-text">逆向文档频率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E6%AE%B5%E9%95%BF%E5%BA%A6%E5%BD%92%E4%B8%80%E5%80%BC"><span class="nav-text">字段长度归一值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E5%90%88%E4%BD%BF%E7%94%A8"><span class="nav-text">结合使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%91%E9%87%8F%E7%A9%BA%E9%97%B4%E6%A8%A1%E5%9E%8B"><span class="nav-text">向量空间模型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-text">参考文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="huangyedi2012"
+      src="/images/logo.svg">
+  <p class="site-author-name" itemprop="name">huangyedi2012</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://timliao2012.github.io/2021/07/02/Elastic-Search/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.svg">
+      <meta itemprop="name" content="huangyedi2012">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="huangyedi2012">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Elastic Search
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-02 17:43:13" itemprop="dateCreated datePublished" datetime="2021-07-02T17:43:13+08:00">2021-07-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-26 19:59:24" itemprop="dateModified" datetime="2023-06-26T19:59:24+08:00">2023-06-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%8E%E5%8F%B0%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">后台开发</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Elasticsearch（简称ES）是一个分布式、可扩展、实时的搜索与数据分析引擎。</p>
+<span id="more"></span>
+<p>todo:</p>
+<ol type="1">
+<li>索引过程</li>
+<li>检索过程</li>
+<li>分数怎么计算的</li>
+</ol>
+<h1 id="传统数据库的问题">传统数据库的问题</h1>
+<p>随着访问量的上升，几乎大部分使用 MySQL
+架构的网站在数据库上都开始出现了性能问题。</p>
+<p><strong>读写分离</strong>
+由于数据库的写入压力增加，读写集中在一个数据库上让数据库不堪重负，大部分网站开始使用主从复制技术来达到读写分离，以提高读写性能和读库的可扩展性。Mysql
+的 master-slave 模式成为这个时候的网站标配了。</p>
+<p><strong>分表分库</strong>
+开始流行使用分表分库来缓解写压力和数据增长的扩展问题。这个时候，分表分库成了一个热门技术，也是业界讨论的热门技术问题。</p>
+<p><strong>MySQL 的扩展性瓶颈</strong> 大数据量高并发环境下的 MySQL
+应用开发越来越复杂，也越来越具有技术挑战性。分表分库的规则把握都是需要经验的。分库分表的子库到一定阶段又面临扩展问题。还有就是需求的变更，可能又需要一种新的分库方式。</p>
+<h1 id="搜索引擎原理">搜索引擎原理</h1>
+<p>一次检索大致可分为四步：</p>
+<ol type="1">
+<li><p><strong>查询分析</strong>
+正常情况下用户输入正确的查询，比如搜索“里约奥运会”这个关键词，用户输入正确完成一次搜索，但是搜索通常都是全开放的，任何的用户输入都是有可能的，很大一部分还是非常口语化和个性化的，有时候还会存在拼写错误，用户不小心把“淘宝”打成“涛宝”，这时候需要用自然语言处理技术来做拼写纠错等处理，以正确理解用户需求。</p></li>
+<li><p><strong>分词技术</strong>
+这一步利用自然语言处理技术将用户输入的查询语句进行分词，如标准分词会把“lucene全文检索框架”分成
+lucene | 全 | 文｜检｜索｜框｜架｜， IK分词会分成：
+lucene｜全文｜检索｜框架｜，还有简单分词等多种分词方法。</p></li>
+<li><p><strong>关键词检索</strong>
+提交关键词后在倒排索引库中进行匹配，倒排索引就是关键词和文档之间的对应关系，就像给文档贴上标签。比如在文档集中含有
+"lucene" 关键词的有文档1 、文档 6、文档9，含有 "全文检索"
+关键词的有文档1 、文档6 那么做与运算，同时含有 "lucene" 和 "全文检索"
+的文档就是文档1和文档6，在实际的搜索中会有更复杂的文档匹配模型。</p></li>
+<li><p><strong>搜索排序</strong>
+对多个相关文档进行相关度计算、排序，返回给用户检索结果。</p></li>
+</ol>
+<h1 id="倒排索引">倒排索引</h1>
+<p>倒排索引，也常被称为反向索引，是一种索引方法，被用来存储在全文搜索下某个单词在一个文档或者一组文档中的存储位置的映射，它是文档检索系统中最常用的数据结构。</p>
+<p>下面我们通过具体实例深入理解倒排索引，通过简单文档以小见大，体验倒排索引的建过程。</p>
+<table>
+<thead>
+<tr class="header">
+<th>文档ID</th>
+<th>文档内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>人工智能成为互联网大会焦点</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>谷歌推出开源人工智能系统工具</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>互联网的未来在人工智能</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>谷歌开源机器学习工具</td>
+</tr>
+</tbody>
+</table>
+<p>对于文档内容，先要经过词条化处理。与英文不同的是，英文通过空格分隔单词，中文的词与词之间没有明确的分隔符号，经过分词系统进行中文分词以后把矩阵切分成一个个的词条。</p>
+<table>
+<thead>
+<tr class="header">
+<th>词项</th>
+<th>文档频率</th>
+<th>倒排记录表</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>人工</td>
+<td>3</td>
+<td>1,2,3</td>
+</tr>
+<tr class="even">
+<td>智能</td>
+<td>3</td>
+<td>1,2,3</td>
+</tr>
+<tr class="odd">
+<td>成为</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>互联网</td>
+<td>2</td>
+<td>1,3</td>
+</tr>
+<tr class="odd">
+<td>大会</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>焦点</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>谷歌</td>
+<td>2</td>
+<td>2,4</td>
+</tr>
+<tr class="even">
+<td>推出</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>开源</td>
+<td>2</td>
+<td>2,4</td>
+</tr>
+<tr class="even">
+<td>系统</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>工具</td>
+<td>2</td>
+<td>2,4</td>
+</tr>
+<tr class="even">
+<td>的</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td>未来</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr class="even">
+<td>在</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td>机器</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td>学习</td>
+<td>1</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>我们需要对单词进行排序，像 B+ 树一样，可以在页里实现二分查找。</p>
+<figure>
+<img src="InvertIndex.png" alt="inverted index" />
+<figcaption aria-hidden="true">inverted index</figcaption>
+</figure>
+<p>Lucene 的倒排索引，增加了最左边的一层「字典树」term
+index，它不存储所有的单词，只存储单词前缀，通过字典树找到单词所在的块，也就是单词的大概位置，再在块里二分查找，找到对应的单词，再找到单词对应的文档列表。</p>
+<p>Lucene
+的实现会要更加复杂，针对不同的数据结构采用不同的字典索引，使用了FST模型、BKDTree等结构。</p>
+<p>真实的倒排记录也并非一个链表，而是采用了SkipList、BitSet等结构。</p>
+<h1 id="elasticsearc索引">ElasticSearc索引</h1>
+<h2 id="索引的不变性"><strong>索引的不变性</strong></h2>
+<p>由于倒排索引的结构特性，在索引建立完成后对其进行修改将会非常复杂。再加上几层索引嵌套，更让索引的更新变成了几乎不可能的动作。
+所以索性设计成不可改变的：倒排索引被写入磁盘后是不可改变的，它永远不会修改。</p>
+<p><strong>优点</strong>：</p>
+<ol type="1">
+<li>不需要锁。如果你从来不更新索引，你就不需要担心多进程同时修改数据的问题。</li>
+<li>一旦索引被读入内核的文件系统缓存，便会留在哪里，由于其不变性。只要文件系统缓存中还有足够的空间，那么大部分读请求会直接请求内存，而不会命中磁盘。这提供了很大的性能提升。</li>
+<li>其它缓存(像filter缓存)，在索引的生命周期内始终有效。它们不需要在每次数据改变时被重建，因为数据不会变化。</li>
+<li>写入单个大的倒排索引允许数据压缩，减少磁盘 I/O 和
+需要被缓存到内存的索引的使用量。</li>
+</ol>
+<p><strong>缺点：</strong></p>
+<p>主要事实是它是不可变的，你不能修改它。如果你需要让一个新的文档
+可被搜索，你需要重建整个索引。这要么对一个索引所能包含的数据量造成了很大的限制，要么对索引可被更新的频率造成了很大的限制。</p>
+<h2 id="动态更新索引">动态更新索引</h2>
+<p>怎样在保留不变性的前提下实现倒排索引的更新？答案是:
+<strong>用更多的索引</strong>。</p>
+<p>Elasticsearch 基于 Lucene, 引入了 <em>按段搜索</em> 的概念。 每一
+<em>段</em> 本身都是一个倒排索引， 但 <em>索引</em> 在 Lucene
+中除表示所有 <em>段</em> 的集合外， 还增加了 <em>提交点</em> 的概念 —
+一个列出了所有已知段的文件，新的文档首先被添加到内存索引缓存中，然后写入到一个基于磁盘的段。</p>
+<p>在 lucene 中查询是基于 segment。每个 segment 可以看做是一个独立的
+subindex，在建立索引的过程中，lucene 会不断的 flush
+内存中的数据持久化形成新的 segment。多个 segment 也会不断的被 merge
+成一个大的 segment，在老的 segment
+还有查询在读取的时候，不会被删除，没有被读取且被 merge 的 segement
+会被删除。</p>
+<figure>
+<img src="index_segment.png" alt="Index Segment" />
+<figcaption aria-hidden="true">Index Segment</figcaption>
+</figure>
+<p><strong>索引更新过程</strong>：</p>
+<ol type="1">
+<li><p>数据先写入内存buffer，在写入buffer的同时将数据写入translog日志文件，注意：此时数据还没有被成功es索引记录，因此无法搜索到对应数据；</p></li>
+<li><p>如果buffer快满了或者到一定时间，es就会将buffer数据refresh到一个新的segment
+file中，但是此时数据不是直接进入segment file的磁盘文件，而是先进入os
+cache的。这个过程就是<strong>refresh</strong>。一旦buffer中的数据被refresh操作，刷入os
+cache中，就代表这个数据就可以被搜索到了。</p>
+<p>每隔1秒钟，es将buffer中的数据写入一个新的segment
+file，因此每秒钟会产生一个新的磁盘文件segment file，这个segment
+file中就存储最近1秒内buffer中写入的数据。</p>
+<p>这就是为什么es被称为准实时（NRT，near
+real-time）：因为写入的数据默认每隔1秒refresh一次，也就是数据每隔一秒才能被
+es 搜索到，之后才能被看到，所以称为准实时。</p>
+<p>只要数据被输入os
+cache中，buffer就会被清空，并且数据在translog日志文件里面持久化到磁盘了一份，此时就可以让这个segment
+file的数据对外提供搜索了。</p></li>
+<li><p>重复1~2步骤，新的数据不断进入buffer和translog，不断将buffer数据写入一个又一个新的segment
+file中去，每次refresh完，buffer就会被清空，同时translog保留一份日志数据。随着这个过程推进，translog文件会不断变大。当translog文件达到一定程度时，就会执行commit操作。</p></li>
+<li><p>commit操作发生第一步，就是将buffer中现有数据refresh到os
+cache中去，清空buffer。将一个 commit point 写入磁盘文件，里面标识着这个
+commit point 对应的所有 segment file，同时强行将 os cache
+中目前所有的数据都 fsync
+到磁盘文件中去。将现有的translog清空，然后再次重启启用一个translog，此时commit操作完成。</p></li>
+</ol>
+<h1 id="文档的更新与删除">文档的更新与删除</h1>
+<h2 id="删除">删除</h2>
+<p>段是不可改变的，所以既不能从把文档从旧的段中移除，也不能修改旧的段来进行反映文档的更新。</p>
+<p>磁盘上的每个segment都有一个.del文件与它相关联。当发送删除请求时，该文档未被真正删除，而是在.del文件中标记为已删除。此文档可能仍然能被搜索到，但会从结果中过滤掉。当segment合并时，在.del文件中标记为已删除的文档不会被包括在新的segment中，也就是说merge的时候会真正删除被删除的文档。</p>
+<h2 id="更新">更新</h2>
+<p>创建新文档时，Elasticsearch将为该文档分配一个版本号。对文档的每次更改都会产生一个新的版本号。当执行更新时，旧版本在.del文件中被标记为已删除，并且新版本在新的segment中写入索引。旧版本可能仍然与搜索查询匹配，但是从结果中将其过滤掉。</p>
+<h1 id="elasticsearch集群原理">ElasticSearch集群原理</h1>
+<figure>
+<img src="es_cluster.png" alt="es-cluster" />
+<figcaption aria-hidden="true">es-cluster</figcaption>
+</figure>
+<p><strong>Document</strong>：文档，指一行数据；</p>
+<p><strong>Index</strong>：索引，是多个document的集合（和sql数据库的表对应)；</p>
+<p><strong>Shard</strong>：分片，当有大量的文档时，由于内存的限制、磁盘处理能力不足、无法足够快的响应客户端的请求等，一个节点可能不够。这种情况下，数据可以分为较小的分片。每个分片放到不同的服务器上。当你查询的索引分布在多个分片上时，ES会把查询发送给每个相关的分片，并将结果组合在一起，而应用程序并不知道分片的存在。即：这个过程对用户来说是透明的</p>
+<p><strong>Replia</strong>：副本，为提高查询吞吐量或实现高可用性，可以使用分片副本。副本是一个分片的精确复制，每个分片可以有零个或多个副本。ES中可以有许多相同的分片，其中之一被选择更改索引操作，这种特殊的分片称为主分片。当主分片丢失时，如：该分片所在的数据不可用时，集群将副本提升为新的主分片。</p>
+<p><strong>Node</strong>：节点，形成集群的每个服务器称为节点，一个节点可以包含多个shard</p>
+<p><strong>Cluster</strong>：集群，ES可以作为一个独立的单个搜索服务器。不过，为了处理大型数据集，实现容错和高可用性，ES可以运行在许多互相合作的服务器上。这些服务器的集合称为集群。</p>
+<h2 id="集群节点角色">集群节点角色</h2>
+<figure>
+<img src="cluster_role.png" alt="cluster role" />
+<figcaption aria-hidden="true">cluster role</figcaption>
+</figure>
+<p>ES集群的服务器主要分为以下三种角色：</p>
+<ol type="1">
+<li><p><strong>master节点</strong>：负责保存和更新集群的一些元数据信息，之后同步到所有节点，所以每个节点都需要保存全量的元数据信息，包括集群的配置信息、集群的节点信息、模板template设置、索引以及对应的设置、mapping、分词器和别名、索引关联到的分片以及分配到的节点等配置</p>
+<blockquote>
+<p><strong>master选举</strong></p>
+<p><strong>选举策略</strong></p>
+<p>如果集群中存在master，认可该master，加入集群，如果集群中不存在master，从具有master资格的节点中选id最小的节点作为master</p>
+<p><strong>选举时机</strong></p>
+<p>集群启动：后台启动线程去ping集群中的节点，按照上述策略从具有master资格的节点中选举出master</p>
+<p>现有的master离开集群：后台一直有一个线程定时ping
+master节点，超过一定次数没有ping成功之后，重新进行master的选举</p>
+<p><strong>避免脑裂</strong></p>
+<p>脑裂问题是采用master-slave模式的分布式集群普遍需要关注的问题，脑裂一旦出现，会导致集群的状态出现不一致，导致数据错误甚至丢失。</p>
+<p>ES避免脑裂的策略：过半原则，可以在ES的集群配置中添加一下配置，避免脑裂的发生</p>
+</blockquote></li>
+<li><p><strong>data节点</strong>：负责数据存储和查询</p></li>
+<li><p><strong>coordinator节点</strong>：路由索引请求、聚合搜索结果集、分发批量索引请求</p></li>
+</ol>
+<h2 id="路由机制">路由机制</h2>
+<p>当索引一个文档的时候，文档会被存储到一个主分片中。 Elasticsearch
+如何知道一个文档应该存放到哪个分片中呢？当我们创建文档时，它如何决定这个文档应当被存储在分片
+1 还是分片 2 中呢？</p>
+<p>首先这肯定不会是随机的，否则将来要获取文档的时候我们就不知道从何处寻找了。实际上，这个过程是根据下面这个公式决定的：</p>
+<p>shard = hash(routing) % number_of_primary_shards</p>
+<p>routing 是一个可变值，默认是文档的 _id ，也可以设置成一个自定义的值。
+routing 通过 hash 函数生成一个数字，然后这个数字再除以
+number_of_primary_shards （主分片的数量）后得到 余数 。这个分布在 0 到
+number_of_primary_shards-1
+之间的余数，就是我们所寻求的文档所在分片的位置。</p>
+<p>这就解释了为什么我们要在创建索引的时候就确定好主分片的数量
+并且永远不会改变这个数量：因为如果数量变化了，那么所有之前路由的值都会无效，文档也再也找不到了。</p>
+<h2 id="新建索引删除文档">新建、索引、删除文档</h2>
+<p>新建、索引和删除请求都是写操作，
+必须在主分片上面完成之后才能被复制到相关的副本分片。</p>
+<figure>
+<img src="document_operation.png" alt="document operation" />
+<figcaption aria-hidden="true">document operation</figcaption>
+</figure>
+<p>以下是在主副分片和任何副本分片上面
+成功新建，索引和删除文档所需要的步骤顺序：</p>
+<ol type="1">
+<li>客户端向 Node 1 发送新建、索引或者删除请求。</li>
+<li>节点使用文档的 _id 确定文档属于分片 0 。请求会被转发到 Node
+3，因为分片 0 的主分片目前被分配在 Node 3 上。</li>
+<li>Node 3 在主分片上面执行请求。如果成功了，它将请求并行转发到 Node 1
+和 Node 2 的副本分片上。一旦所有的副本分片都报告成功, Node 3
+将向协调节点报告成功，协调节点向客户端报告成功。</li>
+</ol>
+<h2 id="查询文档">查询文档</h2>
+<p>可以从主分片或者从其它任意副本分片检索文档</p>
+<figure>
+<img src="document_query.png" alt="doucment query" />
+<figcaption aria-hidden="true">doucment query</figcaption>
+</figure>
+<p>以下是从主分片或者副本分片检索文档的步骤顺序：</p>
+<ol type="1">
+<li>客户端向 Node 1 发送获取请求。</li>
+<li>节点使用文档的 _id 来确定文档属于分片 0 。分片 0
+的副本分片存在于所有的三个节点上。 在这种情况下，它将请求转发到 Node 2
+。</li>
+<li>Node 2 将文档返回给 Node 1 ，然后将文档返回给客户端。</li>
+</ol>
+<p>在处理读取请求时，协调结点在每次请求的时候都会通过轮询所有的副本分片来达到负载均衡。</p>
+<p>在文档被检索时，已经被索引的文档可能已经存在于主分片上但是还没有复制到副本分片。
+在这种情况下，副本分片可能会报告文档不存在，但是主分片可能成功返回文档。
+一旦索引请求成功返回给用户，文档在主分片和副本分片都是可用的。</p>
+<h2 id="更新文档">更新文档</h2>
+<figure>
+<img src="document_update.png" alt="document update" />
+<figcaption aria-hidden="true">document update</figcaption>
+</figure>
+<p>以下是部分更新一个文档的步骤：</p>
+<ol type="1">
+<li>客户端向 Node 1 发送更新请求。</li>
+<li>它将请求转发到主分片所在的 Node 3 。</li>
+<li>Node 3 从主分片检索文档，修改 _source 字段中的 JSON
+，并且尝试重新索引主分片的文档。
+如果文档已经被另一个进程修改，它会重试步骤 3 ，超过 retry_on_conflict
+次后放弃。</li>
+<li>如果 Node 3 成功地更新文档，它将新版本的文档并行转发到 Node 1 和
+Node 2 上的副本分片，重新建立索引。 一旦所有副本分片都返回成功， Node 3
+向协调节点也返回成功，协调节点向客户端返回成功。</li>
+</ol>
+<h2 id="分布式检索">分布式检索</h2>
+<p>搜索需要一种更加复杂的执行模型因为我们不知道查询会命中哪些文档:
+这些文档有可能在集群的任何分片上。一个搜索请求必须询问我们关注的索引（index
+or indices）的所有分片的某个副本来确定它们是否含有任何匹配的文档。</p>
+<p>但是找到所有的匹配文档仅仅完成事情的一半。在 search 接口返回一个 page
+结果之前，多分片中的结果必须组合成单个排序列表。
+为此，搜索被执行成一个两阶段过程，我们称之为 query then fetch 。</p>
+<h3 id="查询阶段"><strong>查询阶段</strong></h3>
+<p>在初始查询阶段时，查询会广播到索引中每一个分片拷贝（主分片或者副本分片）。
+每个分片在本地执行搜索并构建一个匹配文档的优先队列。</p>
+<figure>
+<img src="query.png" alt="query" />
+<figcaption aria-hidden="true">query</figcaption>
+</figure>
+<p>查询阶段包含以下三个步骤:</p>
+<ol type="1">
+<li>客户端发送一个 <code>search</code> 请求到 <code>Node 3</code> ，
+<code>Node 3</code> 会创建一个大小为 <code>from + size</code>
+的空优先队列。</li>
+<li><code>Node 3</code>
+将查询请求转发到索引的每个主分片或副本分片中。每个分片在本地执行查询并添加结果到大小为
+<code>from + size</code> 的本地有序优先队列中。</li>
+<li>每个分片返回各自优先队列中所有文档的 ID 和排序值给协调节点，也就是
+<code>Node 3</code>
+，它合并这些值到自己的优先队列中来产生一个全局排序后的结果列表。</li>
+</ol>
+<p>当一个搜索请求被发送到某个节点时，这个节点就变成了协调节点。
+这个节点的任务是广播查询请求到所有相关分片并将它们的响应整合成全局排序后的结果集合，这个结果集合会返回给客户端。</p>
+<p>协调节点将这些分片级的结果合并到自己的有序优先队列里，它代表了全局排序结果集合。至此查询过程结束。</p>
+<h3 id="取回阶段"><strong>取回阶段</strong></h3>
+<p>查询阶段标识哪些文档满足搜索请求，但是我们仍然需要取回这些文档，这是取回阶段的任务。</p>
+<figure>
+<img src="fetch.png" alt="fetch" />
+<figcaption aria-hidden="true">fetch</figcaption>
+</figure>
+<p>分布式阶段由以下步骤构成：</p>
+<ol type="1">
+<li>协调节点辨别出哪些文档需要被取回并向相关的分片提交多个 GET
+请求。</li>
+<li>每个分片加载并 丰富
+文档，如果有需要的话，接着返回文档给协调节点。</li>
+<li>一旦所有的文档都被取回了，协调节点返回结果给客户端。</li>
+</ol>
+<h1 id="常见问题">常见问题</h1>
+<h2 id="分片的设定">分片的设定</h2>
+<p>分片数过小，数据写入形成瓶颈，无法水平拓展</p>
+<p>分片数过多，每个分片都是一个lucene的索引，分片过多将会占用过多资源</p>
+<p>如何计算分片数</p>
+<p>需要注意分片数量最好设置为节点数的整数倍，保证每一个主机的负载是差不多一样的，特别的，如果是一个主机部署多个实例的情况，更要注意这一点，否则可能遇到其他主机负载正常，就某个主机负载特别高的情况。</p>
+<p>一般我们根据每天的数据量来计算分片，保持每个分片的大小在 50G
+以下比较合理。如果还不能满足要求，那么可能需要在索引层面通过拆分更多的索引或者通过别名
++ 按小时 创建索引的方式来实现了。</p>
+<h2 id="相关度评分">相关度评分</h2>
+<p>Lucene（或 Elasticsearch）使用 <em>布尔模型（Boolean model）</em>
+查找匹配文档，并用一个名为 <em>实用评分函数（practical scoring
+function）</em>的公式来计算相关度。这个公式借鉴了<em>词频/逆向文档频率（term
+frequency/inverse document frequency）</em> 和 <em>向量空间模型（vector
+space
+model）</em>，同时也加入了一些现代的新特性，如协调因子（coordination
+factor），字段长度归一化（field length
+normalization），以及词或查询语句权重提升。</p>
+<h3 id="布尔模型">布尔模型</h3>
+<p><em>布尔模型（Boolean Model）</em> 只是在查询中使用 <code>AND</code>
+、 <code>OR</code> 和 <code>NOT</code>
+（与、或和非）这样的条件来查找匹配的文档，以下查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">full AND text AND search AND (elasticsearch OR lucene)</span><br></pre></td></tr></table></figure>
+<p>会将所有包括词 <code>full</code> 、 <code>text</code> 和
+<code>search</code> ，以及 <code>elasticsearch</code> 或
+<code>lucene</code> 的文档作为结果集。</p>
+<p>这个过程简单且快速，它将所有可能不匹配的文档排除在外。</p>
+<h3 id="词频逆向文档频率tfidf">词频/逆向文档频率（TF/IDF）</h3>
+<p>当匹配到一组文档后，需要根据相关度排序这些文档，不是所有的文档都包含所有词，有些词比其他的词更重要。一个文档的相关度评分部分取决于每个查询词在文档中的
+<em>权重</em> 。</p>
+<p>词的权重由三个因素决定，有兴趣可以了解下面的公式，但并不要求记住。</p>
+<h4 id="词频">词频</h4>
+<p>词在文档中出现的频度是多少？频度越高，权重 <em>越高</em> 。 5
+次提到同一词的字段比只提到 1 次的更相关。词频的计算方式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tf(t in d) = √frequency </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>词 <code>t</code> 在文档 <code>d</code> 的词频（ <code>tf</code>
+）是该词在文档中出现次数的平方根。</p>
+</blockquote>
+<h4 id="逆向文档频率">逆向文档频率</h4>
+<p>词在集合所有文档里出现的频率是多少？频次越高，权重 <em>越低</em>
+。常用词如 <code>and</code> 或 <code>the</code>
+对相关度贡献很少，因为它们在多数文档中都会出现，一些不常见词如
+<code>elastic</code> 或 <code>hippopotamus</code>
+可以帮助我们快速缩小范围找到感兴趣的文档。逆向文档频率的计算公式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">idf(t) = 1 + log ( numDocs / (docFreq + 1)) </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>词 <code>t</code> 的逆向文档频率（ <code>idf</code>
+）是：索引中文档数量除以所有包含该词的文档数，然后求其对数。</p>
+</blockquote>
+<h4 id="字段长度归一值">字段长度归一值</h4>
+<p>字段的长度是多少？字段越短，字段的权重 <em>越高</em>
+。如果词出现在类似标题 <code>title</code> 这样的字段，要比它出现在内容
+<code>body</code>
+这样的字段中的相关度更高。字段长度的归一值公式如下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">norm(d) = 1 / √numTerms </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>字段长度归一值（ <code>norm</code> ）是字段中词数平方根的倒数。</p>
+</blockquote>
+<p>字段长度的归一值对全文搜索非常重要，许多其他字段不需要有归一值。无论文档是否包括这个字段，索引中每个文档的每个
+<code>string</code> 字段都大约占用 1 个 byte 的空间。对于
+<code>not_analyzed</code> 字符串字段的归一值默认是禁用的，而对于
+<code>analyzed</code> 字段也可以通过修改字段映射禁用归一值：</p>
+<p>对于有些应用场景如日志，归一值不是很有用，要关心的只是字段是否包含特殊的错误码或者特定的浏览器唯一标识符。字段的长度对结果没有影响，禁用归一值可以节省大量内存空间。</p>
+<h4 id="结合使用">结合使用</h4>
+<p>以下三个因素——词频（term frequency）、逆向文档频率（inverse document
+frequency）和字段长度归一值（field-length
+norm）——是在索引时计算并存储的。最后将它们结合在一起计算单个词在特定文档中的
+<em>权重</em> 。</p>
+<p>当然，查询通常不止一个词，所以需要一种合并多词权重的方式——向量空间模型（vector
+space model）。</p>
+<h3 id="向量空间模型">向量空间模型</h3>
+<p>在向量空间模型里，向量空间模型里的每个数字都代表一个词的
+<em>权重</em> ，与 词频/逆向文档频率（term frequency/inverse document
+frequency） 计算方式类似。</p>
+<h1 id="参考文献">参考文献</h1>
+<blockquote>
+<ol type="1">
+<li><a
+target="_blank" rel="noopener" href="https://www.jianshu.com/p/52b92f1a9c47">理解ElasticSearch工作原理</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://www.elastic.co/guide/cn/elasticsearch/guide/current/scoring-theory.html">相关度评分背后的理论</a></li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/todo/" rel="tag"># todo</a>
+              <a href="/tags/es/" rel="tag"># es</a>
+              <a href="/tags/%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/" rel="tag"># 倒排索引</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/01/%E6%99%BA%E8%83%BD%E5%AE%A2%E6%9C%8D%E7%B3%BB%E7%BB%9F/" rel="prev" title="智能客服系统">
+                  <i class="fa fa-chevron-left"></i> 智能客服系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/06/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C-Neural-Networks/" rel="next" title="神经网络 Neural Networks">
+                  神经网络 Neural Networks <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">huangyedi2012</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@next-theme/pjax@0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
